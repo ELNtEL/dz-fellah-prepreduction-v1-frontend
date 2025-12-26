@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import LoginForm from "./components/login-form";
 import SignupForm from "./components/signup-form";
@@ -8,10 +8,30 @@ import StoresPage from "./components/stores-page";
 import LandingPage from "./components/landing-page";
 import NotFoundPage from "./components/not-found-page";
 
+// Client Dashboard Pages
+import ClientCartPage from "./pages/client/CartPage";
+import ClientOrdersPage from "./pages/client/OrdersPage";
+import ClientProfilePage from "./pages/client/ClientProfilePage";
+import ClientNotificationsPage from "./pages/client/ClientNotificationsPage";
+
+// Producer Dashboard Pages
+import ProducerProductsPage from "./pages/producer/ProducerProductsPage";
+import ProducerOrdersPage from "./pages/producer/ProducerOrdersPage";
+import ProducerProfilePage from "./pages/producer/ProducerProfilePage";
+import ProducerNotificationsPage from "./pages/producer/ProducerNotificationsPage";
+
+// Client Dashboard Components
+import ClientSidebar from "./components/dashboard/ClientSidebar";
+import ClientHeader from "./components/dashboard/ClientHeader";
+
+// Producer Dashboard Components
+import Sidebar from "./components/dashboard/Sidebar";
+import Header from "./components/dashboard/Header";
+
 // Assets
 import logoImage from "./assets/logo-dzfellah1.png";
 
-// Auth Layout Component to handle Sidebar and Split View
+// Auth Layout Component
 function AuthLayout({ children, mode }) {
   const navigate = useNavigate();
   const isLogin = mode === "login";
@@ -27,7 +47,6 @@ function AuthLayout({ children, mode }) {
         </div>
 
         <div className="flex-1 flex flex-col justify-center gap-16 w-full max-w-lg">
-          {/* Welcome Message */}
           <div>
             <h2 className="text-white text-7xl lg:text-5xl font-bold leading-snug font-sans">
               {isLogin ? (
@@ -46,7 +65,6 @@ function AuthLayout({ children, mode }) {
             </h2>
           </div>
 
-          {/* Navigation Buttons */}
           <div className="flex flex-col items-center gap-6">
             <p className="text-white text-xl font-bold">
               {isLogin ? "I don't have an acount" : "i have already an account"}
@@ -62,7 +80,6 @@ function AuthLayout({ children, mode }) {
         </div>
       </div>
 
-      {/* Right Content Area */}
       <div className="w-full md:w-1/2 flex flex-col justify-center p-6 sm:p-8 lg:p-12">
         <div className="md:hidden mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -79,9 +96,69 @@ function AuthLayout({ children, mode }) {
   );
 }
 
+// Client Dashboard Layout
+// Client Dashboard Layout - FIXED
+function ClientDashboardLayout({ children }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="app-container">  {/* ✅ ADD THIS */}
+      <ClientSidebar />
+      <div className="main-content">  {/* ✅ ADD THIS */}
+        <ClientHeader user={user} />
+        <main className="flex-1 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function ProducerDashboardLayout({ children }) {
+  const [user, setUser] = useState(null);
+  const [activePage, setActivePage] = useState('products');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handlePageChange = (page) => {
+    setActivePage(page);
+    navigate(`/producer/${page}`);
+  };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="app-container">  {/* ← ADD THIS */}
+      <Sidebar activePage={activePage} onPageChange={handlePageChange} />
+      <div className="main-content">  {/* ← ADD THIS */}
+        <Header user={user} />
+        {children}
+      </div>
+    </div>
+  );
+}
 export default function App() {
   const navigate = useNavigate();
-  const [userType, setUserType] = useState("consumer"); // Keeping userType state global if needed by signup-secondary
+  const [userType, setUserType] = useState("consumer");
 
   const handleSignupComplete = (data) => {
     navigate("/signup-secondary");
@@ -93,6 +170,7 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Public Routes */}
       <Route 
         path="/" 
         element={
@@ -126,6 +204,8 @@ export default function App() {
           />
         } 
       />
+      
+      {/* Auth Routes */}
       <Route 
         path="/login" 
         element={
@@ -154,12 +234,81 @@ export default function App() {
                <SignupSecondaryForm
                   userType={userType}
                   onComplete={handleSecondaryComplete}
-                  onBackToLogin={() => navigate("/login")}
                 />
              </div>
           </div>
         } 
       />
+
+      {/* Client Dashboard Routes */}
+      <Route 
+        path="/client/cart" 
+        element={
+          <ClientDashboardLayout>
+            <ClientCartPage />
+          </ClientDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/client/orders" 
+        element={
+          <ClientDashboardLayout>
+            <ClientOrdersPage />
+          </ClientDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/client/profile" 
+        element={
+          <ClientDashboardLayout>
+            <ClientProfilePage />
+          </ClientDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/client/notifications" 
+        element={
+          <ClientDashboardLayout>
+            <ClientNotificationsPage />
+          </ClientDashboardLayout>
+        } 
+      />
+
+      {/* Producer Dashboard Routes */}
+      <Route 
+        path="/producer/products" 
+        element={
+          <ProducerDashboardLayout>
+            <ProducerProductsPage />
+          </ProducerDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/producer/orders" 
+        element={
+          <ProducerDashboardLayout>
+            <ProducerOrdersPage />
+          </ProducerDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/producer/profile" 
+        element={
+          <ProducerDashboardLayout>
+            <ProducerProfilePage />
+          </ProducerDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/producer/notifications" 
+        element={
+          <ProducerDashboardLayout>
+            <ProducerNotificationsPage />
+          </ProducerDashboardLayout>
+        } 
+      />
+
+      {/* Fallback */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

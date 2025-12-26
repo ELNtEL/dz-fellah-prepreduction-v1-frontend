@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin, Globe, Mail, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import farmerImage from "../assets/farmer.png";
 import leafImage from "../assets/leaf.png";
 import oliveOilImage from "../assets/olive-oil.png";
@@ -15,11 +16,17 @@ import decor1 from "../assets/decoration.png";
 import decor2 from "../assets/decoration2.png";
 import decor3 from "../assets/decoration3.png";
 import decor4 from "../assets/decoration4.png";
+import PublicNavBar from './PublicNavBar';
+import productService from '../services/productService';
 
 export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onNavigateToProducts, onNavigateToStores }) {
+  const navigate = useNavigate();
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const products = [
+  // Fallback products (your original hardcoded ones)
+  const fallbackProducts = [
     {
       id: 1,
       name: "oil 250ml",
@@ -46,6 +53,78 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
     },
   ];
 
+  // Check if user is authenticated
+  const isAuthenticated = () => {
+    return !!localStorage.getItem('token');
+  };
+
+  // Handle Join Us button click
+  const handleJoinUs = () => {
+    if (isAuthenticated()) {
+      // If authenticated, go to products page
+      navigate('/products');
+    } else {
+      // If not authenticated, go to signup
+      if (onNavigateToSignup) {
+        onNavigateToSignup();
+      } else {
+        navigate('/signup');
+      }
+    }
+  };
+
+  // Fetch random products on mount
+  useEffect(() => {
+    fetchRandomProducts();
+  }, []);
+
+  const fetchRandomProducts = async () => {
+    try {
+      // Fetch all products
+      const response = await productService.getAllProducts();
+      const allProducts = response.products || [];
+
+      if (allProducts.length > 0) {
+        // Pick 3 random products
+        const randomProducts = [];
+        const usedIndices = new Set();
+        
+        while (randomProducts.length < Math.min(3, allProducts.length)) {
+          const randomIndex = Math.floor(Math.random() * allProducts.length);
+          
+          if (!usedIndices.has(randomIndex)) {
+            usedIndices.add(randomIndex);
+            const product = allProducts[randomIndex];
+            
+            randomProducts.push({
+              id: product.id,
+              name: product.name,
+              category: product.product_type || 'Fresh Product',
+              price: product.sale_type === 'unit' 
+                ? `${product.unit_price} DA/unit` 
+                : `${product.weight_price} DA/kg`,
+              image: product.photo_url || oliveOilImage,
+              seasonal: product.is_seasonal,
+              anti_gaspi: product.is_anti_gaspi,
+              stock: product.stock_quantity
+            });
+          }
+        }
+        
+        setProducts(randomProducts);
+      } else {
+        // No products available, use fallback
+        setProducts(fallbackProducts);
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+      // Use fallback products on error
+      setProducts(fallbackProducts);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const nextProduct = () => {
     setCurrentProductIndex((prev) => (prev + 1) % products.length);
   };
@@ -62,38 +141,15 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
     return visible;
   };
 
+  const handleSeeMore = () => {
+    navigate('/products');
+  };
+
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 px-6 lg:px-16 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src={logoImage} alt="FELLAH" className="h-12 w-auto" />
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#home" className="text-gray-700 hover:text-[#285153] font-medium">Home</a>
-            <a href="#about" className="text-gray-700 hover:text-[#285153] font-medium">About</a>
-            <a href="#contact" className="text-gray-700 hover:text-[#285153] font-medium">Contact</a>
-            <a href="#projects" className="text-gray-700 hover:text-[#285153] font-medium" onClick={(e) => { e.preventDefault(); onNavigateToProducts(); }}>Products</a>
-            <a href="#stores" className="text-gray-700 hover:text-[#285153] font-medium" onClick={(e) => { e.preventDefault(); onNavigateToStores(); }}>Stores</a>
-            <button 
-              onClick={onNavigateToLogin}
-              className="text-gray-700 hover:text-[#285153] font-medium"
-            >
-              login
-            </button>
-          </div>
-
-          <button 
-            onClick={onNavigateToSignup}
-            className="bg-[#285153] hover:bg-[#1a3839] text-white px-6 py-2 rounded-full font-semibold transition-colors"
-          >
-            Sign up
-          </button>
-        </div>
-      </nav>
-
+      <PublicNavBar currentPage="home" />
+      
       {/* Hero Section */}
       <section id="home" className="bg-[#285153] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-16 lg:py-24">
@@ -133,10 +189,10 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={onNavigateToSignup}
+                onClick={handleJoinUs}
                 className="bg-white text-[#285153] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors"
               >
-                Join us
+                {isAuthenticated() ? 'Browse Products' : 'Join us'}
               </motion.button>
             </motion.div>
 
@@ -222,64 +278,91 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
             Available Products
           </h2>
 
-          <div className="relative">
-            {/* Navigation Arrows */}
-            <button
-              onClick={prevProduct}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronLeft className="w-6 h-6 text-[#285153]" />
-            </button>
-
-            <button
-              onClick={nextProduct}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronRight className="w-6 h-6 text-[#285153]" />
-            </button>
-
-            {/* Product Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {getVisibleProducts().map((product, index) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -10 }}
-                  key={`${product.id}-${index}`}
-                  className="bg-white rounded-3xl p-6 shadow-lg"
-                >
-                  <div className="aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <h3 className="text-xl font-bold text-[#285153] mb-2">{product.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{product.category}</p>
-                  {product.seasonal && (
-                    <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                      Seasonal
-                    </span>
-                  )}
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full bg-[#285153] hover:bg-[#1a3839] text-white py-2 rounded-full font-semibold transition-colors"
-                  >
-                    add to cart
-                  </motion.button>
-                </motion.div>
-              ))}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-white mt-4">Loading products...</p>
             </div>
-          </div>
+          ) : (
+            <div className="relative">
+              {/* Navigation Arrows */}
+              {products.length > 3 && (
+                <>
+                  <button
+                    onClick={prevProduct}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
+                  >
+                    <ChevronLeft className="w-6 h-6 text-[#285153]" />
+                  </button>
+
+                  <button
+                    onClick={nextProduct}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
+                  >
+                    <ChevronRight className="w-6 h-6 text-[#285153]" />
+                  </button>
+                </>
+              )}
+
+              {/* Product Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getVisibleProducts().map((product, index) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -10 }}
+                    key={`${product.id}-${index}`}
+                    className="bg-white rounded-3xl p-6 shadow-lg"
+                  >
+                    <div className="aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="text-xl font-bold text-[#285153] mb-2">{product.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{product.category}</p>
+                    <p className="text-sm font-semibold text-[#285153] mb-4">{product.price}</p>
+                    
+                    <div className="flex gap-2 mb-4">
+                      {product.seasonal && (
+                        <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                          Seasonal
+                        </span>
+                      )}
+                      {product.anti_gaspi && (
+                        <span className="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                          -50% Anti-Waste
+                        </span>
+                      )}
+                    </div>
+
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => navigate('/products')}
+                      className="w-full bg-[#285153] hover:bg-[#1a3839] text-white py-2 rounded-full font-semibold transition-colors"
+                    >
+                      View Details
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="text-center mt-12">
-            <button className="bg-white text-[#285153] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSeeMore}
+              className="bg-white text-[#285153] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors"
+            >
               See more
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -366,10 +449,10 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={onNavigateToSignup}
+              onClick={handleJoinUs}
               className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors"
             >
-              join us
+              {isAuthenticated() ? 'Browse Products' : 'join us'}
             </motion.button>
           </motion.div>
         </div>
@@ -391,7 +474,7 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
               transition={{ duration: 0.8 }}
             >
               <h3 className="text-2xl font-bold text-[#285153] mb-6">Get in touch with us</h3>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     type="text"
@@ -432,7 +515,7 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h3 className="text-2xl font-bold text-[#285153] mb-6">Get in touch with us</h3>
+              <h3 className="text-2xl font-bold text-[#285153] mb-6">Contact Information</h3>
               <p className="text-gray-700 mb-8">
                 If you have any questions at all, we're here to help! Our friendly team is ready 
                 to assist you with any inquiries. Don't hesitate to reach out!
@@ -450,7 +533,7 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
                 <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-3">
                   <Globe className="w-5 h-5 text-[#285153]" />
                   <div>
-                    <p className="font-semibold text-sm">Website</p>
+                    <p className="font-semibold text-sm">Phone</p>
                     <p className="text-xs text-gray-600">+213 555 555</p>
                   </div>
                 </div>
@@ -458,16 +541,16 @@ export default function LandingPage({ onNavigateToLogin, onNavigateToSignup, onN
                 <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-3">
                   <Mail className="w-5 h-5 text-[#285153]" />
                   <div>
-                    <p className="font-semibold text-sm">email</p>
-                    <p className="text-xs text-gray-600">fellah@gmail.com</p>
+                    <p className="font-semibold text-sm">Email</p>
+                    <p className="text-xs text-gray-600">dzfellah@gmail.com</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-3">
                   <Clock className="w-5 h-5 text-[#285153]" />
                   <div>
-                    <p className="font-semibold text-sm">availability</p>
-                    <p className="text-xs text-gray-600">24h / 24h</p>
+                    <p className="font-semibold text-sm">Availability</p>
+                    <p className="text-xs text-gray-600">24/7</p>
                   </div>
                 </div>
               </div>
