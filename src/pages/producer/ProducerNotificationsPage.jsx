@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 
 const ProducerNotificationsPage = () => {
-    const [activeTab, setActiveTab] = useState('orders');
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -52,6 +51,7 @@ const ProducerNotificationsPage = () => {
                     type: 'order',
                     userName: `${clientDetails.first_name || ''} ${clientDetails.last_name || ''}`.trim() || 'Client',
                     userEmail: clientDetails.email || 'No email',
+                    phone: clientDetails.phone || null,  // ✅ ADD PHONE
                     avatar: clientDetails.avatar || null,
                     message: message,
                     status: subOrder.status,
@@ -76,13 +76,10 @@ const ProducerNotificationsPage = () => {
         }
     };
 
-    const orderNotifications = notifications.filter(n => n.type === 'order');
-    const productNotifications = notifications.filter(n => n.type === 'product');
-
     if (loading) {
         return (
             <div className="notifications-page">
-                <h1 className="notifications-title">Notifications</h1>
+                <h1 className="notifications-title">Order Notifications</h1>
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <div style={{ 
                         display: 'inline-block',
@@ -101,62 +98,78 @@ const ProducerNotificationsPage = () => {
 
     return (
         <div className="notifications-page">
-            <h1 className="notifications-title">Notifications</h1>
-
-            <div className="notifications-tabs">
-                <button
-                    className={`notification-tab ${activeTab === 'orders' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('orders')}
-                >
-                    orders
-                    {orderNotifications.length > 0 && (
-                        <span style={{
-                            marginLeft: '8px',
-                            background: '#285153',
-                            color: 'white',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            fontSize: '12px'
-                        }}>
-                            {orderNotifications.length}
-                        </span>
-                    )}
-                </button>
-                <button
-                    className={`notification-tab ${activeTab === 'my-notifications' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('my-notifications')}
-                >
-                    my notifications
-                </button>
-            </div>
+            <h1 className="notifications-title">
+                Order Notifications
+                {notifications.length > 0 && (
+                    <span style={{
+                        marginLeft: '12px',
+                        background: '#285153',
+                        color: 'white',
+                        padding: '4px 12px',
+                        borderRadius: '16px',
+                        fontSize: '16px',
+                        fontWeight: 'normal'
+                    }}>
+                        {notifications.length}
+                    </span>
+                )}
+            </h1>
 
             <div className="notification-list">
-                {activeTab === 'orders' ? (
-                    orderNotifications.length > 0 ? (
-                        orderNotifications.map((notification, index) => (
+                {notifications.length > 0 ? (
+                    notifications.map((notification, index) => {
+                        const firstName = notification.userName.split(' ')[0] || 'C';
+                        
+                        return (
                             <div key={index} className="notification-card">
                                 <div className="notification-header">
-                                    <img
-                                        src={notification.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
-                                        alt={notification.userName}
-                                        className="notification-avatar"
-                                    />
+                                    {/* Avatar with fallback */}
+                                    {notification.avatar ? (
+                                        <img
+                                            src={notification.avatar}
+                                            alt={notification.userName}
+                                            className="notification-avatar"
+                                        />
+                                    ) : (
+                                        <div 
+                                            className="notification-avatar"
+                                            style={{
+                                                backgroundColor: '#1a3839',
+                                                color: 'white',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '18px',
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            {firstName.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    
                                     <div className="notification-user-info">
                                         <h4>{notification.userName}</h4>
                                         <p>{notification.userEmail}</p>
+                                        {/* ✅ Phone Number Display */}
+                                        {notification.phone && (
+                                            <p style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                                                📞 {notification.phone}
+                                            </p>
+                                        )}
                                         {notification.orderNumber && (
                                             <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                                                Order: {notification.orderNumber}
+                                                📦 Order: {notification.orderNumber}
                                             </p>
                                         )}
                                     </div>
+                                    
                                     {notification.status === 'pending' && (
                                         <span style={{
                                             marginLeft: 'auto',
                                             background: '#f39c12',
                                             color: 'white',
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
+                                            padding: '6px 14px',
+                                            borderRadius: '16px',
                                             fontSize: '12px',
                                             fontWeight: 'bold'
                                         }}>
@@ -164,7 +177,9 @@ const ProducerNotificationsPage = () => {
                                         </span>
                                     )}
                                 </div>
+                                
                                 <p className="notification-message">{notification.message}</p>
+                                
                                 {notification.total && (
                                     <p style={{ 
                                         marginTop: '8px', 
@@ -176,24 +191,33 @@ const ProducerNotificationsPage = () => {
                                     </p>
                                 )}
                             </div>
-                        ))
-                    ) : (
-                        <p style={{ color: '#888', textAlign: 'center', padding: '40px' }}>
-                            No order notifications yet.
-                        </p>
-                    )
+                        );
+                    })
                 ) : (
-                    productNotifications.length > 0 ? (
-                        productNotifications.map((notification, index) => (
-                            <div key={index} className="notification-simple">
-                                {notification.message}
-                            </div>
-                        ))
-                    ) : (
-                        <p style={{ color: '#888', textAlign: 'center', padding: '40px' }}>
-                            No notifications yet.
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '60px 20px',
+                        color: '#888'
+                    }}>
+                        <svg 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            width="60" 
+                            height="60"
+                            style={{ margin: '0 auto 20px', color: '#ddd' }}
+                        >
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        <h3 style={{ fontSize: '18px', color: '#333', marginBottom: '8px' }}>
+                            No order notifications yet
+                        </h3>
+                        <p style={{ fontSize: '14px' }}>
+                            You'll see new orders from your customers here
                         </p>
-                    )
+                    </div>
                 )}
             </div>
 

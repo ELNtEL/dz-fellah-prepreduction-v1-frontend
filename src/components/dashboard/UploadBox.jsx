@@ -1,72 +1,82 @@
-import React, { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { FiImage, FiPlus } from 'react-icons/fi';
+import './css-weekly/UploadBox.css';
 
-const UploadBox = ({ title, preview, onUpload }) => {
+function UploadBox({ onFileSelect, previewUrl, title = "Upload BASKET photo" }) {
     const fileInputRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleClick = () => {
         fileInputRef.current?.click();
     };
 
-    const handleChange = (e) => {
-        const file = e.target.files[0];
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                onUpload(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                onUpload(reader.result);
-            };
-            reader.readAsDataURL(file);
+            onFileSelect(file);
         }
     };
 
     const handleDragOver = (e) => {
         e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            onFileSelect(file);
+        }
     };
 
     return (
         <div
-            className={`upload-box ${preview ? 'has-image' : ''}`}
-            onClick={handleClick}
-            onDrop={handleDrop}
+            className={`upload-box ${isDragging ? 'dragging' : ''} ${previewUrl ? 'has-preview' : ''}`}
             onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
         >
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleChange}
-                accept="image/*"
-                style={{ display: 'none' }}
-            />
-
-            {preview ? (
-                <img src={preview} alt="Preview" className="upload-preview" />
+            {previewUrl ? (
+                <div className="upload-preview">
+                    <img src={previewUrl} alt="Preview" className="preview-image" />
+                    <button className="change-image-btn" onClick={handleClick}>
+                        Change Image
+                    </button>
+                </div>
             ) : (
-                <>
-                    <div className="upload-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21,15 16,10 5,21" />
-                        </svg>
+                <div className="upload-content">
+                    <div className="upload-icon-container">
+                        <FiImage className="upload-icon" />
+                        <div className="upload-plus">
+                            <FiPlus />
+                        </div>
                     </div>
+
                     <h3 className="upload-title">{title}</h3>
-                    <p className="upload-subtitle">Drag and drop or click to upload. (Optional)</p>
-                    <span className="upload-btn">Choose file</span>
-                </>
+                    <p className="upload-hint">Drag and drop or click to upload. (Optional)</p>
+
+                    <button className="upload-btn" onClick={handleClick}>
+                        Choose file
+                    </button>
+                </div>
             )}
+
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file-input"
+            />
         </div>
     );
-};
+}
 
 export default UploadBox;

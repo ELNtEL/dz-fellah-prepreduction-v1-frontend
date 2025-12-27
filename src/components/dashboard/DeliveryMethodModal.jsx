@@ -101,19 +101,35 @@ const DeliveryMethodModal = ({ onConfirm, onCancel }) => {
     const [selectedPickupPoint, setSelectedPickupPoint] = useState(null);
 
     const handleConfirm = () => {
-        if (deliveryMethod === 'pickup_point' && !selectedPickupPoint) {
-            alert('Please select a pickup point');
-            return;
-        }
+    if (deliveryMethod === 'pickup_point' && !selectedPickupPoint) {
+        alert('Please select a pickup point');
+        return;
+    }
 
-        onConfirm({
-            delivery_method: deliveryMethod,
-            delivery_address: deliveryMethod === 'pickup_point' 
-                ? `${selectedPickupPoint.name}, ${selectedPickupPoint.address}`
-                : '',
-            pickup_point_id: selectedPickupPoint?.id || null
-        });
-    };
+    onConfirm({
+        delivery_method: deliveryMethod,
+        delivery_address: deliveryMethod === 'pickup_point' 
+            ? `${selectedPickupPoint.name}, ${selectedPickupPoint.address}`
+            : '',
+        pickup_point_id: selectedPickupPoint?.id || null
+    });
+};
+
+// ✅ ADD THIS - Check if Continue should be disabled
+const isContinueDisabled = () => {
+    if (deliveryMethod === 'pickup_producer') {
+        return false; // Always allow pickup from producer
+    }
+    
+    if (deliveryMethod === 'pickup_point') {
+        // Disable if no wilaya selected OR if selected wilaya has no pickup points OR if no pickup point selected
+        if (!selectedWilaya) return true;
+        if (availablePickupPoints.length === 0) return true;
+        if (!selectedPickupPoint) return true;
+    }
+    
+    return false;
+};
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -396,24 +412,26 @@ const DeliveryMethodModal = ({ onConfirm, onCancel }) => {
                         Cancel
                     </button>
                     <button
-                        onClick={handleConfirm}
-                        style={{
-                            flex: 1,
-                            padding: '12px 20px',
-                            backgroundColor: '#285153',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#1f3f40'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = '#285153'}
-                    >
-                        Continue
-                    </button>
+    onClick={handleConfirm}
+    disabled={isContinueDisabled()} // ✅ ADD THIS
+    style={{
+        flex: 1,
+        padding: '12px 20px',
+        backgroundColor: isContinueDisabled() ? '#d1d5db' : '#285153', // ✅ Gray when disabled
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: isContinueDisabled() ? 'not-allowed' : 'pointer', // ✅ Change cursor
+        transition: 'background-color 0.2s',
+        opacity: isContinueDisabled() ? 0.5 : 1 // ✅ Fade when disabled
+    }}
+    onMouseOver={(e) => !isContinueDisabled() && (e.target.style.backgroundColor = '#1f3f40')}
+    onMouseOut={(e) => !isContinueDisabled() && (e.target.style.backgroundColor = '#285153')}
+>
+    Continue
+</button>
                 </div>
             </div>
         </div>

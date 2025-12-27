@@ -1,0 +1,248 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    z-index: 10;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #285153;
+    margin-bottom: 20px;
+}
+
+.basket-form {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+}
+
+.form-input:focus {
+    border-color: #285153;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(40, 81, 83, 0.1);
+}
+
+.form-input::placeholder {
+    color: #999;
+}
+
+.form-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.add-products-btn {
+    background-color: #285153;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.add-products-btn:hover {
+    background-color: #1f3f40;
+}
+
+.product-selector {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-selector-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.product-selector-item:hover {
+    background-color: #f5f5f5;
+}
+
+.product-selector-item:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.product-selector-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.product-selector-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.product-selector-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.product-selector-price {
+    font-size: 12px;
+    color: #666;
+}
+
+.no-products-msg {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 13px;
+}
+
+.products-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    min-height: 100px;
+    background-color: #fafafa;
+}
+
+.price-summary {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.submit-btn {
+    background-color: #285153;
+    color: white;
+    padding: 14px 40px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: center;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background-color: #1f3f40;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 81, 83, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-container::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+.modal-container::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}

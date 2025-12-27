@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, Star } from "lucide-react";
 import ProductDetailModal from "./product-detail-modal";
 import productService from "../services/productService";
+import ratingService from "../services/ratingService";
 import PublicNavBar from "./PublicNavBar";
 
 // Assets
@@ -35,6 +36,33 @@ const getCategoryFallbackImage = (category) => {
   return fallbacks[category] || '📦';
 };
 
+// Star Rating Display Component
+const StarRating = ({ rating, count }) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-4 h-4 ${
+            star <= fullStars
+              ? 'fill-yellow-400 text-yellow-400'
+              : star === fullStars + 1 && hasHalfStar
+              ? 'fill-yellow-200 text-yellow-400'
+              : 'fill-none text-gray-300'
+          }`}
+        />
+      ))}
+      <span className="text-sm text-gray-600 ml-1">
+        {rating > 0 ? `${rating.toFixed(1)}` : 'No ratings'}
+        {count > 0 && ` (${count})`}
+      </span>
+    </div>
+  );
+};
+
 export default function ProductsPage({ 
   onNavigateToHome, 
   onNavigateToLogin, 
@@ -44,7 +72,6 @@ export default function ProductsPage({
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentStoreIndex, setCurrentStoreIndex] = useState(0);
   
-  // Enhanced filters state
   const [filters, setFilters] = useState({
     search: '',
     producer_search: '',
@@ -52,12 +79,11 @@ export default function ProductsPage({
     is_anti_gaspi: false
   });
   
-  // Backend integration
   const [products, setProducts] = useState([]);
+  const [productRatings, setProductRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Categories
   const categories = [
     { value: 'Vegetables', label: '🥬 Vegetables', emoji: '🥬' },
     { value: 'Fruits', label: '🍎 Fruits', emoji: '🍎' },
@@ -69,7 +95,6 @@ export default function ProductsPage({
     { value: 'Other', label: '📦 Other', emoji: '📦' },
   ];
 
-  // Fetch products on mount
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -81,24 +106,26 @@ export default function ProductsPage({
     try {
       const apiFilters = {};
       
-      if (filters.search) {
-        apiFilters.search = filters.search;
-      }
-      
-      if (filters.producer_search) {
-        apiFilters.producer_search = filters.producer_search;
-      }
-      
-      if (filters.product_type) {
-        apiFilters.product_type = filters.product_type;
-      }
-      
-      if (filters.is_anti_gaspi) {
-        apiFilters.is_anti_gaspi = true;
-      }
+      if (filters.search) apiFilters.search = filters.search;
+      if (filters.producer_search) apiFilters.producer_search = filters.producer_search;
+      if (filters.product_type) apiFilters.product_type = filters.product_type;
+      if (filters.is_anti_gaspi) apiFilters.is_anti_gaspi = true;
       
       const response = await productService.getAllProducts(apiFilters);
-      setProducts(response.products || []);
+      const fetchedProducts = response.products || [];
+      setProducts(fetchedProducts);
+      
+      // Fetch ratings for all products
+      const ratings = {};
+      for (const product of fetchedProducts) {
+        try {
+          const rating = await ratingService.getProductRatings(product.id);
+          ratings[product.id] = rating;
+        } catch (err) {
+          ratings[product.id] = { average_rating: 0, total_ratings: 0 };
+        }
+      }
+      setProductRatings(ratings);
     } catch (err) {
       console.error('Failed to fetch products:', err);
       setError('Failed to load products. Please try again.');
@@ -135,14 +162,12 @@ export default function ProductsPage({
     });
   };
 
-  // Apply filters when they change
   useEffect(() => {
     fetchProducts();
   }, [filters.product_type, filters.is_anti_gaspi]);
 
   const hasActiveFilters = filters.search || filters.producer_search || filters.product_type || filters.is_anti_gaspi;
 
-  // Featured stores carousel
   const featuredStores = [
     { name: "tizi_wezou_farm", products: "vegetables, oils" },
     { name: "boumerdas_lands", products: "vegetables, fruits" },
@@ -159,10 +184,8 @@ export default function ProductsPage({
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* Navigation Bar */}
       <PublicNavBar currentPage="products" />
 
-      {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-teal-50 to-green-50 py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 grid md:grid-cols-2 gap-12 items-center relative z-10">
           <motion.div
@@ -189,18 +212,14 @@ export default function ProductsPage({
           </motion.div>
         </div>
 
-        {/* Decorative elements */}
         <img src={leafImage} alt="" className="absolute top-10 right-10 w-32 opacity-20" />
         <img src={decor1} alt="" className="absolute bottom-10 left-10 w-24 opacity-20" />
       </section>
 
-      {/* Search & Filter Section */}
       <section className="bg-white py-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 lg:px-16">
-          {/* Search Inputs */}
           <form onSubmit={handleSearch} className="space-y-4 mb-6">
             <div className="grid md:grid-cols-2 gap-4">
-              {/* Product Search */}
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -212,7 +231,6 @@ export default function ProductsPage({
                 />
               </div>
 
-              {/* Producer Search */}
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -233,7 +251,6 @@ export default function ProductsPage({
             </button>
           </form>
 
-          {/* Category Filter Buttons */}
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Categories:</h3>
             <div className="flex flex-wrap gap-2">
@@ -253,11 +270,9 @@ export default function ProductsPage({
             </div>
           </div>
 
-          {/* Additional Filters */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold text-gray-700">Filters:</span>
             
-            {/* Anti-Gaspi Filter */}
             <button
               onClick={handleAntiGaspiToggle}
               className={`px-4 py-2 rounded-full font-semibold transition ${
@@ -269,7 +284,6 @@ export default function ProductsPage({
               ♻️ Anti-Waste (-50%)
             </button>
 
-            {/* Clear Filters */}
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -281,7 +295,6 @@ export default function ProductsPage({
             )}
           </div>
 
-          {/* Active Filters Display */}
           {hasActiveFilters && (
             <div className="mt-4 flex flex-wrap gap-2">
               {filters.search && (
@@ -309,7 +322,6 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* Products Grid */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-16">
           <div className="flex items-center justify-between mb-8">
@@ -358,6 +370,7 @@ export default function ProductsPage({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
                 const imageUrl = getImageUrl(product.photo_url);
+                const rating = productRatings[product.id] || { average_rating: 0, total_ratings: 0 };
                 
                 return (
                   <motion.div
@@ -374,7 +387,6 @@ export default function ProductsPage({
                           alt={product.name}
                           className="w-full h-48 object-cover"
                           onError={(e) => {
-                            // Fallback if image fails to load
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
                           }}
@@ -405,6 +417,12 @@ export default function ProductsPage({
                       <p className="text-sm text-gray-600 mb-2">
                         {product.producer_name || 'Local Farm'}
                       </p>
+                      
+                      {/* Product Rating */}
+                      <div className="mb-2">
+                        <StarRating rating={rating.average_rating} count={rating.total_ratings} />
+                      </div>
+                      
                       <div className="flex items-center justify-between">
                         <span className="text-[#285153] font-bold text-xl">
                           {product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}
@@ -424,7 +442,6 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* Featured Stores Carousel */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-16">
           <div className="flex items-center justify-between mb-8">
@@ -464,7 +481,6 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* Product Detail Modal */}
       {selectedProduct && (
         <ProductDetailModal
           product={selectedProduct}
@@ -472,7 +488,6 @@ export default function ProductsPage({
         />
       )}
 
-      {/* Footer */}
       <footer className="bg-[#285153] text-white py-12">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 text-center">
           <p className="text-lg mb-4">DZ-Fellah - Connecting Algerian Farmers with Consumers</p>

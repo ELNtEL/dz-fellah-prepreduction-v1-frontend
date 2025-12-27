@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronLeft, ChevronRight, MapPin, Mail, ArrowLeft, Package, X } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MapPin, Mail, ArrowLeft, Package, X, Star } from "lucide-react";
 import ProductDetailModal from "./product-detail-modal";
 import { producerService } from "../services";
 import productService from "../services/productService";
+import ratingService from "../services/ratingService";
 import PublicNavBar from './PublicNavBar';
 
 // Assets
@@ -30,12 +31,37 @@ const getCategoryFallbackImage = (category) => {
 // Helper function to build full image URL
 const getImageUrl = (path) => {
   if (!path) return null;
-  // If already full URL, return as-is
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // Otherwise prepend media URL
   return `http://localhost:8000/media/${path}`;
+};
+
+// Star Rating Display Component
+const StarRating = ({ rating, count }) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-4 h-4 ${
+            star <= fullStars
+              ? 'fill-yellow-400 text-yellow-400'
+              : star === fullStars + 1 && hasHalfStar
+              ? 'fill-yellow-200 text-yellow-400'
+              : 'fill-none text-gray-300'
+          }`}
+        />
+      ))}
+      <span className="text-sm text-gray-600 ml-1">
+        {rating > 0 ? `${rating.toFixed(1)}` : 'No ratings yet'}
+        {count > 0 && ` (${count})`}
+      </span>
+    </div>
+  );
 };
 
 export default function StoresPage({ 
@@ -48,7 +74,6 @@ export default function StoresPage({
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   
-  // Enhanced filters state
   const [filters, setFilters] = useState({
     search: '',
     wilaya: null,
@@ -56,14 +81,14 @@ export default function StoresPage({
     is_bio_certified: false
   });
   
-  // Backend integration
   const [stores, setStores] = useState([]);
   const [storeProducts, setStoreProducts] = useState([]);
+  const [producerRating, setProducerRating] = useState(null);
+  const [productRatings, setProductRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Algerian Wilayas (48 wilayas)
   const wilayas = [
     'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar',
     'Blida', 'Bouira', 'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret', 'Tizi Ouzou', 'Alger',
@@ -74,15 +99,14 @@ export default function StoresPage({
     'Ghardaïa', 'Relizane'
   ];
 
-  // Fetch all stores on mount
   useEffect(() => {
     fetchStores();
   }, []);
 
-  // Fetch products when a store is selected
   useEffect(() => {
     if (selectedStore) {
       fetchStoreProducts(selectedStore.id);
+      fetchProducerRating(selectedStore.id);
     }
   }, [selectedStore]);
 
@@ -95,21 +119,10 @@ export default function StoresPage({
         page_size: 50,
       };
       
-      if (filters.search) {
-        apiFilters.search = filters.search;
-      }
-      
-      if (filters.wilaya) {
-        apiFilters.wilaya = filters.wilaya;
-      }
-      
-      if (filters.city) {
-        apiFilters.city = filters.city;
-      }
-      
-      if (filters.is_bio_certified) {
-        apiFilters.is_bio_certified = true;
-      }
+      if (filters.search) apiFilters.search = filters.search;
+      if (filters.wilaya) apiFilters.wilaya = filters.wilaya;
+      if (filters.city) apiFilters.city = filters.city;
+      if (filters.is_bio_certified) apiFilters.is_bio_certified = true;
       
       const response = await producerService.getAllProducers(apiFilters);
       setStores(response.producers || []);
@@ -121,12 +134,35 @@ export default function StoresPage({
     }
   };
 
+  const fetchProducerRating = async (producerId) => {
+    try {
+      const rating = await ratingService.getProducerRating(producerId);
+      setProducerRating(rating);
+    } catch (err) {
+      console.error('Failed to fetch producer rating:', err);
+      setProducerRating(null);
+    }
+  };
+
   const fetchStoreProducts = async (producerId) => {
     setProductsLoading(true);
     
     try {
       const response = await producerService.getProducerProducts(producerId);
-      setStoreProducts(response.products || []);
+      const products = response.products || [];
+      setStoreProducts(products);
+      
+      // Fetch ratings for all products
+      const ratings = {};
+      for (const product of products) {
+        try {
+          const rating = await ratingService.getProductRatings(product.id);
+          ratings[product.id] = rating;
+        } catch (err) {
+          ratings[product.id] = { average_rating: 0, total_ratings: 0 };
+        }
+      }
+      setProductRatings(ratings);
     } catch (err) {
       console.error('Failed to fetch store products:', err);
       setStoreProducts([]);
@@ -436,6 +472,23 @@ export default function StoresPage({
             <div className="bg-white rounded-xl shadow-md p-8 -mt-32 relative z-10 mb-12">
               <h1 className="text-4xl font-bold text-[#285153] mb-4">{selectedStore.shop_name}</h1>
               
+              {/* Producer Rating */}
+              <div className="mb-4">
+  {producerRating ? (
+    <StarRating 
+      rating={producerRating.average_rating || 0} 
+      count={producerRating.total_ratings || 0} 
+    />
+  ) : (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star key={star} className="w-4 h-4 fill-none text-gray-300" />
+      ))}
+      <span className="text-sm text-gray-600 ml-1">No ratings yet</span>
+    </div>
+  )}
+</div>
+              
               {selectedStore.description && (
                 <p className="text-gray-600 mb-6">{selectedStore.description}</p>
               )}
@@ -497,63 +550,73 @@ export default function StoresPage({
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {getVisibleProducts().map((product) => (
-                      <div
-                        key={product.id}
-                        className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
-                        onClick={() => setSelectedProduct(product)}
-                      >
-                        <div className="relative">
-                          {getImageUrl(product.image || product.photo_url) ? (
-                            <img
-                              src={getImageUrl(product.image || product.photo_url)}
-                              alt={product.name}
-                              className="w-full h-48 object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-48 bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center">
-                              <span className="text-8xl">
-                                {getCategoryFallbackImage(product.product_type)}
+                    {getVisibleProducts().map((product) => {
+                      const rating = productRatings[product.id] || { average_rating: 0, total_ratings: 0 };
+                      
+                      return (
+                        <div
+                          key={product.id}
+                          className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          <div className="relative">
+                            {getImageUrl(product.image || product.photo_url) ? (
+                              <img
+                                src={getImageUrl(product.image || product.photo_url)}
+                                alt={product.name}
+                                className="w-full h-48 object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-48 bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center">
+                                <span className="text-8xl">
+                                  {getCategoryFallbackImage(product.product_type)}
+                                </span>
+                              </div>
+                            )}
+                            {product.is_seasonal && (
+                              <span className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                De saison
+                              </span>
+                            )}
+                            {product.has_anti_waste_discount && (
+                              <span className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                -50%
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="p-4">
+                            <h3 className="font-bold text-lg text-gray-800 mb-2">{product.name}</h3>
+                            
+                            {/* Product Rating */}
+                            <div className="mb-2">
+                              <StarRating rating={rating.average_rating} count={rating.total_ratings} />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-[#285153] font-bold text-xl">
+                                {product.has_anti_waste_discount ? (
+                                  <>
+                                    <span className="line-through text-gray-400 text-sm mr-2">
+                                      {product.original_price} DA
+                                    </span>
+                                    {product.price} DA
+                                  </>
+                                ) : (
+                                  `${product.price} DA`
+                                )}
+                                /{product.unit}
                               </span>
                             </div>
-                          )}
-                          {product.is_seasonal && (
-                            <span className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                              De saison
-                            </span>
-                          )}
-                          {product.has_anti_waste_discount && (
-                            <span className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                              -50%
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="p-4">
-                          <h3 className="font-bold text-lg text-gray-800 mb-2">{product.name}</h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[#285153] font-bold text-xl">
-                              {product.has_anti_waste_discount ? (
-                                <>
-                                  <span className="line-through text-gray-400 text-sm mr-2">
-                                    {product.original_price} DA
-                                  </span>
-                                  {product.price} DA
-                                </>
-                              ) : (
-                                `${product.price} DA`
-                              )}
-                              /{product.unit}
-                            </span>
+                            {product.stock && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                Stock: {product.stock} {product.unit}
+                              </p>
+                            )}
                           </div>
-                          {product.stock && (
-                            <p className="text-xs text-gray-500 mt-2">
-                              Stock: {product.stock} {product.unit}
-                            </p>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

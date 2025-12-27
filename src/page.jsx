@@ -6,6 +6,7 @@ import SignupSecondaryForm from "./components/signup-secondary-form";
 import ProductsPage from "./components/products-page";
 import StoresPage from "./components/stores-page";
 import LandingPage from "./components/landing-page";
+import BrowseSubscriptionBasketsPage from "./components/BrowseSubscriptionBasketsPage";
 import NotFoundPage from "./components/not-found-page";
 
 // Client Dashboard Pages
@@ -13,12 +14,14 @@ import ClientCartPage from "./pages/client/CartPage";
 import ClientOrdersPage from "./pages/client/OrdersPage";
 import ClientProfilePage from "./pages/client/ClientProfilePage";
 import ClientNotificationsPage from "./pages/client/ClientNotificationsPage";
+import ClientWeeklyBasketPage from "./pages/client/ClientWeeklyBasketPage";
 
 // Producer Dashboard Pages
 import ProducerProductsPage from "./pages/producer/ProducerProductsPage";
 import ProducerOrdersPage from "./pages/producer/ProducerOrdersPage";
 import ProducerProfilePage from "./pages/producer/ProducerProfilePage";
 import ProducerNotificationsPage from "./pages/producer/ProducerNotificationsPage";
+import WeeklyBasketPage from "./pages/producer/WeeklyBasketPage";
 
 // Client Dashboard Components
 import ClientSidebar from "./components/dashboard/ClientSidebar";
@@ -97,7 +100,6 @@ function AuthLayout({ children, mode }) {
 }
 
 // Client Dashboard Layout
-// Client Dashboard Layout - FIXED
 function ClientDashboardLayout({ children }) {
   const [user, setUser] = useState(null);
 
@@ -113,18 +115,17 @@ function ClientDashboardLayout({ children }) {
   }
 
   return (
-    <div className="app-container">  {/* ✅ ADD THIS */}
+    <>
       <ClientSidebar />
-      <div className="main-content">  {/* ✅ ADD THIS */}
+      <div style={{ marginLeft: '200px' }}>
         <ClientHeader user={user} />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+        {children}
       </div>
-    </div>
+    </>
   );
 }
 
+// Producer Dashboard Layout
 function ProducerDashboardLayout({ children }) {
   const [user, setUser] = useState(null);
   const [activePage, setActivePage] = useState('products');
@@ -147,15 +148,16 @@ function ProducerDashboardLayout({ children }) {
   }
 
   return (
-    <div className="app-container">  {/* ← ADD THIS */}
+    <>
       <Sidebar activePage={activePage} onPageChange={handlePageChange} />
-      <div className="main-content">  {/* ← ADD THIS */}
+      <div style={{ marginLeft: '200px' }}>
         <Header user={user} />
         {children}
       </div>
-    </div>
+    </>
   );
 }
+
 export default function App() {
   const navigate = useNavigate();
   const [userType, setUserType] = useState("consumer");
@@ -203,6 +205,10 @@ export default function App() {
             onNavigateToProducts={() => navigate("/products")}
           />
         } 
+      />
+      <Route 
+        path="/subscriptions" 
+        element={<BrowseSubscriptionBasketsPage />} 
       />
       
       {/* Auth Routes */}
@@ -273,6 +279,14 @@ export default function App() {
           </ClientDashboardLayout>
         } 
       />
+      <Route 
+        path="/client/subscriptions" 
+        element={
+          <ClientDashboardLayout>
+            <ClientWeeklyBasketPage />
+          </ClientDashboardLayout>
+        } 
+      />
 
       {/* Producer Dashboard Routes */}
       <Route 
@@ -304,6 +318,14 @@ export default function App() {
         element={
           <ProducerDashboardLayout>
             <ProducerNotificationsPage />
+          </ProducerDashboardLayout>
+        } 
+      />
+      <Route 
+        path="/producer/baskets" 
+        element={
+          <ProducerDashboardLayout>
+            <WeeklyBasketPage />
           </ProducerDashboardLayout>
         } 
       />

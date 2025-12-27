@@ -105,6 +105,12 @@ const PublicNavBar = ({ currentPage }) => {
           >
             Stores
           </button>
+          <button 
+            onClick={() => navigate('/subscriptions')} 
+            className={`text-white hover:text-gray-200 font-semibold ${currentPage === 'subscriptions' ? 'underline' : ''}`}
+          >
+            Subscriptions
+          </button>
         </div>
 
         <div className="flex items-center gap-4">

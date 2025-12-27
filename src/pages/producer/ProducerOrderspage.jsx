@@ -38,10 +38,8 @@ const ProducerOrdersPage = () => {
                 status: newStatus
             });
             
-            // Refresh orders after update
             await fetchOrders();
             
-            // Show success toast
             const statusMessages = {
                 'confirmed': 'Order has been confirmed',
                 'preparing': 'Order preparation has started',
@@ -124,7 +122,6 @@ const ProducerOrdersPage = () => {
         <div className="orders-page">
             <h1 className="orders-title">Incoming Orders</h1>
 
-            {/* Toast Notification */}
             {toast && (
                 <Toast 
                     message={toast.message} 
@@ -236,62 +233,119 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
 
     const nextAction = getNextAction(order.status);
     const clientDetails = order.client_details || {};
+    
+    // ✅ Get client name and first initial for avatar
+    const clientName = `${clientDetails.first_name || ''} ${clientDetails.last_name || ''}`.trim() || 'Client';
+    const firstName = clientDetails.first_name || 'C';
 
     return (
-        <div className="order-card" style={{ marginBottom: '20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        <div className="order-card" style={{ marginBottom: '20px', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
-                <div>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '20px' }}>
+                <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold', color: '#285153' }}>
                         Order #{order.sub_order_number}
                     </h3>
-                    <p style={{ margin: '0', color: '#666', fontSize: '14px' }}>
-                        Ordered: {formatDate(order.created_at)}
+                    <p style={{ margin: '0 0 12px 0', color: '#888', fontSize: '13px' }}>
+                        {formatDate(order.created_at)}
                     </p>
-                    <p style={{ margin: '4px 0', color: '#666', fontSize: '14px' }}>
-                        Client: {clientDetails.first_name} {clientDetails.last_name}
-                    </p>
-                    {clientDetails.email && (
-                        <p style={{ margin: '0', color: '#666', fontSize: '13px' }}>
-                            {clientDetails.email}
-                        </p>
-                    )}
-                    {clientDetails.phone && (
-                        <p style={{ margin: '0', color: '#666', fontSize: '13px' }}>
-                            {clientDetails.phone}
-                        </p>
-                    )}
+                    
+                    {/* ✅ Client Info with Avatar */}
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '12px',
+                        padding: '12px',
+                        backgroundColor: '#f9f9f9',
+                        borderRadius: '8px',
+                        marginTop: '12px'
+                    }}>
+                        {/* Avatar */}
+                        {clientDetails.avatar ? (
+                            <img
+                                src={clientDetails.avatar}
+                                alt={clientName}
+                                style={{
+                                    width: '45px',
+                                    height: '45px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    flexShrink: 0
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '45px',
+                                height: '45px',
+                                borderRadius: '50%',
+                                backgroundColor: '#1a3839',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                flexShrink: 0
+                            }}>
+                                {firstName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        
+                        {/* Client Details */}
+                        <div style={{ flex: 1 }}>
+                            <p style={{ margin: '0', fontWeight: '600', fontSize: '15px', color: '#333' }}>
+                                {clientName}
+                            </p>
+                            {clientDetails.email && (
+                                <p style={{ margin: '2px 0 0 0', color: '#666', fontSize: '13px' }}>
+                                    ✉️ {clientDetails.email}
+                                </p>
+                            )}
+                            {clientDetails.phone && (
+                                <p style={{ margin: '2px 0 0 0', color: '#666', fontSize: '13px' }}>
+                                    📞 {clientDetails.phone}
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
+                
+                {/* Status Badge */}
                 <div>
                     <span style={{
                         display: 'inline-block',
-                        padding: '6px 16px',
-                        borderRadius: '12px',
-                        fontSize: '13px',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
                         fontWeight: 'bold',
                         color: 'white',
-                        backgroundColor: getStatusColor(order.status)
+                        backgroundColor: getStatusColor(order.status),
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
                     }}>
-                        {order.status.toUpperCase()}
+                        {order.status}
                     </span>
                 </div>
             </div>
 
             {/* Items */}
             <div style={{ marginBottom: '16px' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: '#666' }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 'bold', color: '#285153' }}>
                     Order Items:
                 </h4>
                 {(order.items || []).map((item, idx) => (
-                    <div key={idx} style={{ padding: '8px 0', borderBottom: idx < order.items.length - 1 ? '1px solid #eee' : 'none' }}>
+                    <div key={idx} style={{ 
+                        padding: '12px 0', 
+                        borderBottom: idx < order.items.length - 1 ? '1px solid #eee' : 'none' 
+                    }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <span style={{ fontWeight: '500' }}>{item.product_name}</span>
-                                <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+                                <span style={{ fontWeight: '600', fontSize: '15px' }}>{item.product_name}</span>
+                                <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>
                                     {item.unit_price} DA × {item.quantity_ordered} {item.sale_type === 'weight' ? 'kg' : 'units'}
                                 </div>
                             </div>
-                            <span style={{ fontWeight: 'bold', color: '#285153' }}>
+                            <span style={{ fontWeight: 'bold', color: '#285153', fontSize: '16px' }}>
                                 {(item.subtotal || 0).toFixed(2)} DA
                             </span>
                         </div>
@@ -310,15 +364,16 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
             {/* Delivery Info */}
             {order.parent_order_details?.delivery_method && (
                 <div style={{ 
-                    padding: '10px', 
-                    backgroundColor: '#f0f8ff', 
-                    borderRadius: '4px',
+                    padding: '12px', 
+                    backgroundColor: '#e8f5e9', 
+                    borderRadius: '8px',
                     marginBottom: '12px',
-                    fontSize: '13px'
+                    fontSize: '13px',
+                    borderLeft: '4px solid #4caf50'
                 }}>
-                    <strong>Delivery:</strong> {
+                    <strong>📦 Delivery:</strong> {
                         order.parent_order_details.delivery_method === 'pickup_producer' 
-                            ? 'Client will pickup' 
+                            ? 'Client will pickup at your farm' 
                             : `Delivery to ${order.parent_order_details.delivery_address || 'client address'}`
                     }
                 </div>
@@ -326,8 +381,14 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
 
             {/* Producer Notes */}
             {order.producer_notes && (
-                <div style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#fffbf0', borderRadius: '4px', borderLeft: '3px solid #f39c12' }}>
-                    <strong style={{ fontSize: '12px', color: '#666' }}>Your Notes:</strong>
+                <div style={{ 
+                    marginBottom: '12px', 
+                    padding: '12px', 
+                    backgroundColor: '#fff8e1', 
+                    borderRadius: '8px', 
+                    borderLeft: '4px solid #ffa726' 
+                }}>
+                    <strong style={{ fontSize: '13px', color: '#666' }}>📝 Your Notes:</strong>
                     <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>{order.producer_notes}</p>
                 </div>
             )}
@@ -339,17 +400,24 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
                         onClick={() => onUpdateStatus(order.id, nextAction.nextStatus)}
                         style={{
                             flex: 1,
-                            padding: '12px',
+                            padding: '14px',
                             backgroundColor: '#285153',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
                             fontWeight: 'bold',
+                            fontSize: '14px',
                             cursor: 'pointer',
-                            transition: 'background-color 0.2s'
+                            transition: 'all 0.2s'
                         }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#1a3839'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = '#285153'}
+                        onMouseOver={(e) => {
+                            e.target.style.backgroundColor = '#1a3839';
+                            e.target.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.backgroundColor = '#285153';
+                            e.target.style.transform = 'translateY(0)';
+                        }}
                     >
                         {nextAction.label}
                     </button>
@@ -361,17 +429,24 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
                                 }
                             }}
                             style={{
-                                padding: '12px 24px',
+                                padding: '14px 24px',
                                 backgroundColor: '#e74c3c',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
                                 fontWeight: 'bold',
+                                fontSize: '14px',
                                 cursor: 'pointer',
-                                transition: 'background-color 0.2s'
+                                transition: 'all 0.2s'
                             }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#c0392b'}
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#e74c3c'}
+                            onMouseOver={(e) => {
+                                e.target.style.backgroundColor = '#c0392b';
+                                e.target.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.backgroundColor = '#e74c3c';
+                                e.target.style.transform = 'translateY(0)';
+                            }}
                         >
                             Cancel Order
                         </button>
@@ -383,14 +458,15 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
             {(order.status === 'completed' || order.status === 'cancelled') && (
                 <div style={{ 
                     marginTop: '12px',
-                    padding: '12px', 
+                    padding: '14px', 
                     backgroundColor: order.status === 'completed' ? '#d4edda' : '#f8d7da',
                     color: order.status === 'completed' ? '#155724' : '#721c24',
-                    borderRadius: '4px',
+                    borderRadius: '8px',
                     textAlign: 'center',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    fontSize: '14px'
                 }}>
-                    {order.status === 'completed' ? 'Order Completed' : 'Order Cancelled'}
+                    {order.status === 'completed' ? '✓ Order Completed' : '✕ Order Cancelled'}
                 </div>
             )}
         </div>

@@ -9,33 +9,33 @@ const basketService = {
     if (filters.limit) params.append('limit', filters.limit);
     
     const response = await api.get(`/seasonal-baskets/?${params}`);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   getBasketDetail: async (basketId) => {
     const response = await api.get(`/seasonal-baskets/${basketId}/`);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   // Producer - Manage baskets
   getMyBaskets: async () => {
     const response = await api.get('/my-seasonal-baskets/');
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   createBasket: async (basketData) => {
     const response = await api.post('/my-seasonal-baskets/', basketData);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   updateBasket: async (basketId, basketData) => {
     const response = await api.patch(`/my-seasonal-baskets/${basketId}/`, basketData);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   deleteBasket: async (basketId) => {
     const response = await api.delete(`/my-seasonal-baskets/${basketId}/`);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   addProductToBasket: async (basketId, productId, quantity) => {
@@ -43,17 +43,17 @@ const basketService = {
       product_id: productId,
       quantity: quantity
     });
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   removeProductFromBasket: async (basketId, productId) => {
     const response = await api.delete(`/my-seasonal-baskets/${basketId}/remove-product/${productId}/`);
-    return response.data;
+    return response; // ✅ REMOVE .data
   },
 
   getBasketSubscribers: async (basketId) => {
     const response = await api.get(`/my-seasonal-baskets/${basketId}/subscribers/`);
-    return response.data;
+    return response; // ✅ REMOVE .data
   }
 };
 
