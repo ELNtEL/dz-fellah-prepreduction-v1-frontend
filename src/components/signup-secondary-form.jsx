@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Upload, Phone, MapPin, ArrowLeft } from "lucide-react";
 import heroImage from "../assets/signup-hero.png";
-import userService from "../services/userService";
+import userService from "../services/UserService";
 
 const WILAYAS = [
   "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa",
