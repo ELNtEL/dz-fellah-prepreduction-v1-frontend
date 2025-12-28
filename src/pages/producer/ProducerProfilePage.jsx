@@ -82,19 +82,41 @@ const ProducerProfilePage = () => {
         setFarmData(prev => ({ ...prev, [name]: value }));
     };
 
-   const handleProfilePhotoUpload = (file) => {
+const handleProfilePhotoUpload = (file) => {
+    console.log('📸 File received:', file);
+    
+    if (!file) {
+        console.error('❌ No file provided!');
+        return;
+    }
+    
     // Convert file to base64
     const reader = new FileReader();
     reader.onloadend = () => {
+        console.log('✅ Base64 conversion done, length:', reader.result.length);
         setProfileData(prev => ({ ...prev, avatar: reader.result }));
+    };
+    reader.onerror = (error) => {
+        console.error('❌ FileReader error:', error);
     };
     reader.readAsDataURL(file);
 };
 
 const handleFarmPhotoUpload = (file) => {
+    console.log('🏠 File received:', file);
+    
+    if (!file) {
+        console.error('❌ No file provided!');
+        return;
+    }
+    
     const reader = new FileReader();
     reader.onloadend = () => {
+        console.log('✅ Base64 conversion done, length:', reader.result.length);
         setFarmData(prev => ({ ...prev, farmPhoto: reader.result }));
+    };
+    reader.onerror = (error) => {
+        console.error('❌ FileReader error:', error);
     };
     reader.readAsDataURL(file);
 };
