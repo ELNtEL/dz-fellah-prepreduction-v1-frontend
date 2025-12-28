@@ -1,17 +1,13 @@
 import React from 'react';
+import { getImageUrl, getCategoryFallbackEmoji } from '../../utils/imageUtils';
 
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
+// Use emoji directly for cart items
+const getCategoryFallbackImage = (category) => {
+  return getCategoryFallbackEmoji(category);
 };
 
-// Category fallback emojis
-const getCategoryFallbackImage = (category) => {
-  const fallbacks = {
+// Keep the old structure but use imported function
+const oldFallbacks = {
     'Vegetables': '🥬',
     'Fruits': '🍎',
     'Dairy': '🥛',

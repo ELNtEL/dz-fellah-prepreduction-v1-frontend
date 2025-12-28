@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-        return path;
-    }
-    return `http://localhost:8000/media/${path}`;
-};
+import { getImageUrl, getCategoryFallbackEmoji } from '../../utils/imageUtils';
 
 // Category fallback for products
 const getCategoryFallbackImage = (category) => {
-    const fallbacks = {
-        'Vegetables': '🥬',
+    return getCategoryFallbackEmoji(category);
+};
+
+const oldFallbacks = {
+    'Vegetables': '🥬',
         'Fruits': '🍎',
         'Dairy': '🥛',
         'Oils': '🫒',

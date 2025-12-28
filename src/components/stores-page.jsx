@@ -6,35 +6,16 @@ import { producerService } from "../services";
 import productService from "../services/productService";
 import ratingService from "../services/ratingService";
 import PublicNavBar from './PublicNavBar';
+import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Assets
 import logoImage from "../assets/logo-dzfellah1.png";
 import farmerImage from "../assets/farmer.png";
 import farmHeader from "../assets/farm-header.png";
 
-// Category fallback for products
+// Category fallback for backwards compatibility
 const getCategoryFallbackImage = (category) => {
-  const fallbacks = {
-    'Vegetables': '🥬',
-    'Fruits': '🍎',
-    'Dairy': '🥛',
-    'Oils': '🫒',
-    'Honey': '🍯',
-    'Grains': '🌾',
-    'Meat': '🥩',
-    'Other': '📦'
-  };
-  
-  return fallbacks[category] || '📦';
-};
-
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
+  return getCategoryFallbackEmoji(category);
 };
 
 // Star Rating Display Component

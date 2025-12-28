@@ -3,6 +3,7 @@ import { FiX } from 'react-icons/fi';
 import ProductCard from './ProductCard';
 import basketService from '../../services/basketService';
 import productService from '../../services/productService';
+import { getImageUrl, getCategoryFallbackEmoji } from '../../utils/imageUtils';
 import './css-weekly/BasketModal.css';
 
 function BasketModal({ isOpen, onClose, basket, onSave }) {
@@ -222,29 +223,34 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                                 {productsToAdd.length === 0 ? (
                                     <p className="no-products-msg">No more products to add</p>
                                 ) : (
-                                    productsToAdd.map(product => (
-                                        <div
-                                            key={product.id}
-                                            className="product-selector-item"
-                                            onClick={() => handleAddProduct(product)}
-                                        >
-                                            {product.photo_url ? (
-                                                <img
-                                                    src={`http://localhost:8000/media/${product.photo_url}`}
-                                                    alt={product.name}
-                                                    className="product-selector-image"
-                                                />
-                                            ) : (
-                                                <div className="product-selector-image" style={{ background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    📦
+                                    productsToAdd.map(product => {
+                                        const imageUrl = getImageUrl(product.photo_url);
+                                        const categoryEmoji = getCategoryFallbackEmoji(product.product_type);
+
+                                        return (
+                                            <div
+                                                key={product.id}
+                                                className="product-selector-item"
+                                                onClick={() => handleAddProduct(product)}
+                                            >
+                                                {imageUrl ? (
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={product.name}
+                                                        className="product-selector-image"
+                                                    />
+                                                ) : (
+                                                    <div className="product-selector-image" style={{ background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                                                        {categoryEmoji}
+                                                    </div>
+                                                )}
+                                                <div className="product-selector-info">
+                                                    <span className="product-selector-name">{product.name}</span>
+                                                    <span className="product-selector-price">{product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}</span>
                                                 </div>
-                                            )}
-                                            <div className="product-selector-info">
-                                                <span className="product-selector-name">{product.name}</span>
-                                                <span className="product-selector-price">{product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}</span>
                                             </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </div>
                         )}

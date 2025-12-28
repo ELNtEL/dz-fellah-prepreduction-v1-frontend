@@ -2,33 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Star, Package, Calendar } from 'lucide-react';
 import ratingService from '../../services/ratingService';
+import { getImageUrl, getCategoryFallbackEmoji } from '../../utils/imageUtils';
 
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
-};
 
-// Category fallback emojis
-const getCategoryFallbackEmoji = (category) => {
-  const fallbacks = {
-    'Vegetables': '🥬',
-    'Fruits': '🍎',
-    'Dairy': '🥛',
-    'Oils': '🫒',
-    'Honey': '🍯',
-    'Grains': '🌾',
-    'Meat': '🥩',
-    'Other': '📦'
-  };
-  
-  return fallbacks[category] || '📦';
-};
-
-// Star Rating Component
 const StarRating = ({ rating, count }) => {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;

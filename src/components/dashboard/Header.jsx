@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const Header = ({ user, onNotificationClick }) => {
     const navigate = useNavigate();
-    
+
     const getDisplayName = () => {
         if (user.name) return user.name;
         if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`;
@@ -20,17 +21,6 @@ const Header = ({ user, onNotificationClick }) => {
         if (user.farmName) return user.farmName;
         if (user.producer_profile?.shop_name) return user.producer_profile.shop_name;
         return 'your farm';
-    };
-
-    // Helper function to build full image URL
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        // If already full URL, return as-is
-        if (path.startsWith('http://') || path.startsWith('https://')) {
-            return path;
-        }
-        // Otherwise prepend media URL
-        return `http://localhost:8000/media/${path}`;
     };
 
     const displayName = getDisplayName();

@@ -1,15 +1,9 @@
 import { FiCheck } from 'react-icons/fi';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, Package } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
 import './css-weekly/ClientBasketCard.css';
 
 function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetails }) {
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http://') || path.startsWith('https://')) {
-            return path;
-        }
-        return `http://localhost:8000/media/${path}`;
-    };
 
     // ✅ FIX: Use basket data directly (already restructured in parent)
     const { 
@@ -21,7 +15,8 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
         original_price, 
         discounted_price, 
         product_count, 
-        pickup_day 
+        pickup_day,
+        products  // ✅ ADD THIS
     } = basket;
     
     const bannerUrl = getImageUrl(producer_banner);
@@ -74,9 +69,63 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                 {/* Stats */}
                 <div className="basket-stats">
                     <span className="basket-stat">
-                        📦 {product_count || 0} items
+                        📦 {products?.length || product_count || 0} items
                     </span>
                 </div>
+
+                {/* ✅ NEW: Products Preview */}
+                {products && products.length > 0 && (
+                    <div className="basket-products-preview" style={{
+                        marginTop: '12px',
+                        padding: '8px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '6px',
+                        fontSize: '11px'
+                    }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '4px',
+                            marginBottom: '8px',
+                            fontWeight: '600',
+                            color: '#333'
+                        }}>
+                            <Package style={{ width: '12px', height: '12px' }} />
+                            <span>Products in basket:</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {products.slice(0, 3).map((product) => (
+                                <div key={product.id} style={{ 
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    color: '#666',
+                                    paddingLeft: '4px'
+                                }}>
+                                    <span style={{ flex: 1 }}>• {product.name}</span>
+                                    <span style={{ 
+                                        fontWeight: '500',
+                                        color: '#2d5016',
+                                        fontSize: '10px'
+                                    }}>
+                                        {parseFloat(product.quantity).toFixed(1)}kg
+                                    </span>
+                                </div>
+                            ))}
+                            {products.length > 3 && (
+                                <span style={{ 
+                                    fontSize: '10px', 
+                                    color: '#999', 
+                                    marginTop: '4px',
+                                    paddingLeft: '4px',
+                                    fontStyle: 'italic'
+                                }}>
+                                    +{products.length - 3} more item{products.length - 3 > 1 ? 's' : ''}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Pickup Day */}
                 {pickup_day && (
@@ -133,9 +182,9 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                     <>
                         <button
                             className="basket-btn view-btn"
-                            onClick={() => onViewDetails && onViewDetails(id)}
+                            onClick={() => onViewDetails && onViewDetails(basket)}
                         >
-                            VIEW
+                            VIEW DETAILS
                         </button>
                         {subscription.status === 'active' && (
                             <button
@@ -167,9 +216,9 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                     <>
                         <button
                             className="basket-btn view-btn"
-                            onClick={() => onViewDetails && onViewDetails(id)}
+                            onClick={() => onViewDetails && onViewDetails(basket)}
                         >
-                            VIEW
+                            VIEW DETAILS
                         </button>
                         <button
                             className="basket-btn add-btn"

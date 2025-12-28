@@ -15,30 +15,11 @@ import decor4 from "../assets/decoration4.png";
 import PublicNavBar from './PublicNavBar';
 import productService from '../services/productService';
 import basketService from '../services/basketService';
+import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
-// Helper function to build full image URL - SAME AS PRODUCTS PAGE
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
-};
-
-// Category fallback emojis - SAME AS PRODUCTS PAGE
+// Category fallback for backwards compatibility
 const getCategoryFallbackImage = (category) => {
-  const fallbacks = {
-    'Vegetables': '🥬',
-    'Fruits': '🍎',
-    'Dairy': '🥛',
-    'Oils': '🫒',
-    'Honey': '🍯',
-    'Grains': '🌾',
-    'Meat': '🥩',
-    'Other': '📦'
-  };
-  
-  return fallbacks[category] || '📦';
+  return getCategoryFallbackEmoji(category);
 };
 
 export default function LandingPage() {

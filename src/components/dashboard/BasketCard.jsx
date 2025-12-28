@@ -1,17 +1,9 @@
-import { Calendar } from 'lucide-react'; // ✅ ADD THIS IMPORT
+import { Calendar } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
 import './css-weekly/BasketCard.css';
 
 function BasketCard({ basket, onEdit, onDelete }) {
     const { id, name, discount_percentage, original_price, discounted_price, product_count, subscriber_count, producer_banner, pickup_day } = basket;
-
-    // Helper function to build full image URL
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http://') || path.startsWith('https://')) {
-            return path;
-        }
-        return `http://localhost:8000/media/${path}`;
-    };
 
     const bannerUrl = getImageUrl(producer_banner);
 

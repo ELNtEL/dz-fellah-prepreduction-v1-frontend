@@ -7,20 +7,12 @@ import basketService from "../services/basketService";
 import authService from "../services/authService";
 import { useNavigate } from 'react-router-dom';
 import PublicNavBar from "./PublicNavBar";
+import { getImageUrl } from "../utils/imageUtils";
 
 // Assets
 import farmerImage from "../assets/basket.png";
 import leafImage from "../assets/leaf.png";
 import decor1 from "../assets/decoration.png";
-
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
-};
 
 // Get unique categories from products
 const getProductCategories = (products) => {

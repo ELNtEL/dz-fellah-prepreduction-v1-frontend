@@ -2,31 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Star, ShoppingBag, Package, Calendar, TrendingDown } from 'lucide-react';
 import ratingService from '../services/ratingService';
-
-// Helper function to build full image URL
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-  return `http://localhost:8000/media/${path}`;
-};
-
-// Category fallback emojis
-const getCategoryFallbackEmoji = (category) => {
-  const fallbacks = {
-    'Vegetables': '🥬',
-    'Fruits': '🍎',
-    'Dairy': '🥛',
-    'Oils': '🫒',
-    'Honey': '🍯',
-    'Grains': '🌾',
-    'Meat': '🥩',
-    'Other': '📦'
-  };
-  
-  return fallbacks[category] || '📦';
-};
+import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Star Rating Display Component
 const StarRating = ({ rating, count }) => {

@@ -14,7 +14,7 @@ function ClientWeeklyBasketPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [cancellingSubscription, setCancellingSubscription] = useState(null);
     const [toast, setToast] = useState(null);
-    const [showCancelled, setShowCancelled] = useState(false); // ✅ ADD THIS
+    const [showCancelled, setShowCancelled] = useState(false);
 
     useEffect(() => {
         fetchSubscriptions();
@@ -54,7 +54,8 @@ function ClientWeeklyBasketPage() {
                 producer_shop_name: subscription.shop_name,
                 producer_id: subscription.producer_id,
                 delivery_frequency: subscription.delivery_frequency,
-                pickup_day: subscription.pickup_day
+                pickup_day: subscription.pickup_day,
+                products: subscription.products  // ✅ ADD THIS
             });
             setIsModalOpen(true);
         }
@@ -96,13 +97,11 @@ function ClientWeeklyBasketPage() {
         setSelectedBasket(null);
     };
 
-    // ✅ SEPARATE ACTIVE AND CANCELLED SUBSCRIPTIONS
     const activeSubscriptions = subscriptions.filter(s => s.status !== 'cancelled');
     const cancelledSubscriptions = subscriptions.filter(s => s.status === 'cancelled');
 
     return (
         <>
-            {/* Toast Notification */}
             {toast && (
                 <Toast
                     message={toast.message}
@@ -111,7 +110,6 @@ function ClientWeeklyBasketPage() {
                 />
             )}
 
-            {/* Delete Confirmation Modal */}
             {cancellingSubscription && (
                 <DeleteConfirmationModal
                     productName={`${cancellingSubscription.basket_name} subscription`}
@@ -137,7 +135,6 @@ function ClientWeeklyBasketPage() {
                 </div>
             ) : (
                 <>
-                    {/* ✅ ACTIVE SUBSCRIPTIONS SECTION */}
                     <div className="subscriptions-section">
                         <h2 style={{ 
                             fontSize: '20px', 
@@ -168,7 +165,8 @@ function ClientWeeklyBasketPage() {
                                             discounted_price: subscription.discounted_price,
                                             product_count: subscription.product_count,
                                             producer_shop_name: subscription.shop_name,
-                                            pickup_day: subscription.pickup_day
+                                            pickup_day: subscription.pickup_day,
+                                            products: subscription.products  // ✅ ADD THIS
                                         }}
                                         subscription={subscription}
                                         onPause={() => handlePauseSubscription(subscription.id)}
@@ -180,7 +178,6 @@ function ClientWeeklyBasketPage() {
                         </div>
                     </div>
 
-                    {/* ✅ CANCELLED SUBSCRIPTIONS SECTION (COLLAPSIBLE) */}
                     {cancelledSubscriptions.length > 0 && (
                         <div className="subscriptions-section" style={{ marginTop: '40px' }}>
                             <button
@@ -217,7 +214,8 @@ function ClientWeeklyBasketPage() {
                                                 discounted_price: subscription.discounted_price,
                                                 product_count: subscription.product_count,
                                                 producer_shop_name: subscription.shop_name,
-                                                pickup_day: subscription.pickup_day
+                                                pickup_day: subscription.pickup_day,
+                                                products: subscription.products  // ✅ ADD THIS
                                             }}
                                             subscription={subscription}
                                             onViewDetails={() => handleViewDetails(subscription.id)}
