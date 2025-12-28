@@ -82,13 +82,22 @@ const ProducerProfilePage = () => {
         setFarmData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleProfilePhotoUpload = (imageData) => {
-        setProfileData(prev => ({ ...prev, avatar: imageData }));
+   const handleProfilePhotoUpload = (file) => {
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        setProfileData(prev => ({ ...prev, avatar: reader.result }));
     };
+    reader.readAsDataURL(file);
+};
 
-    const handleFarmPhotoUpload = (imageData) => {
-        setFarmData(prev => ({ ...prev, farmPhoto: imageData }));
+const handleFarmPhotoUpload = (file) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        setFarmData(prev => ({ ...prev, farmPhoto: reader.result }));
     };
+    reader.readAsDataURL(file);
+};
 
     const handleSaveProfile = async () => {
         try {
@@ -222,7 +231,7 @@ const ProducerProfilePage = () => {
                     <UploadBox
                         title="Upload profile photo"
                         preview={profileData.avatar}
-                        onUpload={handleProfilePhotoUpload}
+                        onFileSelect={handleProfilePhotoUpload}
                     />
 
                     <div className="form-group" style={{ marginTop: '30px' }}>
@@ -272,7 +281,7 @@ const ProducerProfilePage = () => {
                     <UploadBox
                         title="Upload farm photo"
                         preview={farmData.farmPhoto}
-                        onUpload={handleFarmPhotoUpload}
+                        onFileSelect={handleFarmPhotoUpload}
                     />
 
                     <div className="form-group" style={{ marginTop: '30px' }}>
