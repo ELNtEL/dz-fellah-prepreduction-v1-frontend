@@ -7,19 +7,7 @@ const getCategoryFallbackImage = (category) => {
 };
 
 // Keep the old structure but use imported function
-const oldFallbacks = {
-    'Vegetables': '🥬',
-    'Fruits': '🍎',
-    'Dairy': '🥛',
-    'Oils': '🫒',
-    'Honey': '🍯',
-    'Grains': '🌾',
-    'Meat': '🥩',
-    'Other': '📦'
-  };
-  
-  return fallbacks[category] || '📦';
-};
+
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
     const lineTotal = item.price * item.quantity;
