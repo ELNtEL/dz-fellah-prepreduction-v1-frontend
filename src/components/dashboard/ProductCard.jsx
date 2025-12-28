@@ -6,18 +6,7 @@ const getCategoryFallbackImage = (category) => {
     return getCategoryFallbackEmoji(category);
 };
 
-const oldFallbacks = {
-    'Vegetables': '🥬',
-        'Fruits': '🍎',
-        'Dairy': '🥛',
-        'Oils': '🫒',
-        'Honey': '🍯',
-        'Grains': '🌾',
-        'Meat': '🥩',
-        'Other': '📦'
-    };
-    return fallbacks[category] || '📦';
-};
+
 
 const ProductCard = ({ product, onEdit, onDelete }) => {
     const imageUrl = getImageUrl(product.photo_url || product.image);
