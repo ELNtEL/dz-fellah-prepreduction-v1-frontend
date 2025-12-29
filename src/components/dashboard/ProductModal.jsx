@@ -55,10 +55,52 @@ const ProductModal = ({ product, onSave, onClose }) => {
             }));
         }
     };
-
-    const handleImageUpload = (imageData) => {
-        setFormData(prev => ({ ...prev, photo_url: imageData }));
+const handleImageUpload = (file) => {
+    if (!file) {
+        console.error('❌ No file provided!');
+        return;
+    }
+    
+    // Compress and convert to base64
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    img.onload = () => {
+        // Resize to max 800x800 while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 800;
+        
+        if (width > height) {
+            if (width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            }
+        } else {
+            if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression (0.7 quality)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        console.log('✅ Product image compressed, length:', compressedBase64.length);
+        
+        setFormData(prev => ({ ...prev, photo_url: compressedBase64 }));
     };
+    
+    img.onerror = (error) => {
+        console.error('❌ Image load error:', error);
+    };
+    
+    img.src = URL.createObjectURL(file);
+};
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -94,7 +136,7 @@ const ProductModal = ({ product, onSave, onClose }) => {
                         <UploadBox
                             title="Upload product photo"
                             preview={formData.photo_url}
-                            onUpload={handleImageUpload}
+                            onFileSelect={handleImageUpload}
                         />
 
                         <div className="form-group" style={{ marginTop: '25px' }}>
