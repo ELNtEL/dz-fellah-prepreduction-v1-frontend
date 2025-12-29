@@ -90,16 +90,45 @@ const handleProfilePhotoUpload = (file) => {
         return;
     }
     
-    // Convert file to base64
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        console.log('✅ Base64 conversion done, length:', reader.result.length);
-        setProfileData(prev => ({ ...prev, avatar: reader.result }));
+    // Compress image before converting to base64
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    img.onload = () => {
+        // Resize to max 800x800 while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 800;
+        
+        if (width > height) {
+            if (width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            }
+        } else {
+            if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression (0.7 quality)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        console.log('✅ Compressed base64 length:', compressedBase64.length);
+        
+        setProfileData(prev => ({ ...prev, avatar: compressedBase64 }));
     };
-    reader.onerror = (error) => {
-        console.error('❌ FileReader error:', error);
+    
+    img.onerror = (error) => {
+        console.error('❌ Image load error:', error);
     };
-    reader.readAsDataURL(file);
+    
+    img.src = URL.createObjectURL(file);
 };
 
 const handleFarmPhotoUpload = (file) => {
@@ -110,15 +139,45 @@ const handleFarmPhotoUpload = (file) => {
         return;
     }
     
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        console.log('✅ Base64 conversion done, length:', reader.result.length);
-        setFarmData(prev => ({ ...prev, farmPhoto: reader.result }));
+    // Compress image before converting to base64
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    img.onload = () => {
+        // Resize to max 800x800 while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 800;
+        
+        if (width > height) {
+            if (width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            }
+        } else {
+            if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression (0.7 quality)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        console.log('✅ Compressed base64 length:', compressedBase64.length);
+        
+        setFarmData(prev => ({ ...prev, farmPhoto: compressedBase64 }));
     };
-    reader.onerror = (error) => {
-        console.error('❌ FileReader error:', error);
+    
+    img.onerror = (error) => {
+        console.error('❌ Image load error:', error);
     };
-    reader.readAsDataURL(file);
+    
+    img.src = URL.createObjectURL(file);
 };
 
     const handleSaveProfile = async () => {
