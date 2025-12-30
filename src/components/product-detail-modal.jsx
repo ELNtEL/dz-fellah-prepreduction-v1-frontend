@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cartService from "../services/cartService";
 import authService from "../services/authService";
+import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 export default function ProductDetailModal({ product, onClose }) {
   const navigate = useNavigate();
@@ -12,8 +13,9 @@ export default function ProductDetailModal({ product, onClose }) {
 
   if (!product) return null;
 
-  // Use actual product image (can add more images later)
-  const images = [product.photo_url || product.image || 'https://via.placeholder.com/400x400'];
+  // Use actual product image
+  const imageUrl = getImageUrl(product.photo_url || product.image);
+  const images = imageUrl ? [imageUrl] : [];
 
   const nextImage = (e) => {
     e.stopPropagation();
@@ -34,7 +36,6 @@ export default function ProductDetailModal({ product, onClose }) {
   };
 
   const handleAddToCart = async () => {
-    // Check if user is logged in
     const isAuthenticated = authService.isAuthenticated();
     
     if (!isAuthenticated) {
@@ -45,7 +46,6 @@ export default function ProductDetailModal({ product, onClose }) {
 
     setLoading(true);
     try {
-      // ✅ FIXED: Use addToCart instead of addItem
       await cartService.addToCart(product.id, quantity);
       alert(`${product.name} added to cart!`);
       onClose();
@@ -62,7 +62,6 @@ export default function ProductDetailModal({ product, onClose }) {
     onClose();
   };
 
-  // Format price with sale_type
   const formatPrice = () => {
     const price = product.current_price || product.price || 0;
     const saleType = product.sale_type;
@@ -75,28 +74,16 @@ export default function ProductDetailModal({ product, onClose }) {
     return `${price} DA`;
   };
 
-  // Get product category display name
   const getCategoryName = () => {
-    const categoryMap = {
-      'vegetables': 'Vegetables',
-      'fruits': 'Fruits',
-      'dairy': 'Dairy Products',
-      'oils': 'Oils & Fats',
-      'honey': 'Honey',
-      'grains': 'Grains & Cereals',
-      'meat': 'Meat & Poultry',
-      'other': 'Other'
-    };
-    return categoryMap[product.product_type] || product.category || product.product_type || 'General';
+    return product.product_type || 'General';
   };
 
-  // Get product state/freshness
   const getProductState = () => {
     if (product.is_anti_gaspi) {
       return 'Anti-Waste (50% off)';
     }
     if (product.is_seasonal) {
-      return 'Seasonal';
+      return 'Seasonal Product';
     }
     return 'Fresh';
   };
@@ -121,18 +108,31 @@ export default function ProductDetailModal({ product, onClose }) {
         </button>
 
         <div className="grid md:grid-cols-2">
-          {/* Image Section */}
+          {/* Image Section with Fallback */}
           <div className="relative h-[400px] md:h-[600px]">
-            <img 
-              src={images[currentImage]} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            {imageUrl ? (
+              <img 
+                src={imageUrl}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className="absolute inset-0 bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center"
+              style={{ display: imageUrl ? 'none' : 'flex' }}
+            >
+              <span className="text-9xl">
+                {getCategoryFallbackEmoji(product.product_type)}
+              </span>
+            </div>
             
             {/* Show navigation only if multiple images */}
             {images.length > 1 && (
               <>
-                {/* Navigation Arrows */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4">
                   <button 
                     onClick={prevImage}
@@ -148,7 +148,6 @@ export default function ProductDetailModal({ product, onClose }) {
                   </button>
                 </div>
 
-                {/* Pagination Dots */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
                   {images.map((_, idx) => (
                     <div 
@@ -162,56 +161,52 @@ export default function ProductDetailModal({ product, onClose }) {
               </>
             )}
 
-            {/* Anti-gaspi Badge */}
-            {product.is_anti_gaspi && (
-              <div className="absolute top-6 left-6 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-sm">
-                -50% Anti-Waste
+            {/* Seasonal Badge */}
+            {product.is_seasonal && (
+              <div className="absolute top-6 left-6 bg-orange-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                🌱 In Season
               </div>
             )}
 
-            {/* Seasonal Badge */}
-            {product.is_seasonal && !product.is_anti_gaspi && (
-              <div className="absolute top-6 left-6 bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm">
-                Seasonal
+            {/* Anti-gaspi Badge */}
+            {product.is_anti_gaspi && (
+              <div className="absolute top-20 left-6 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                -50% Anti-Waste
               </div>
             )}
           </div>
 
           {/* Details Section */}
-          <div className="p-8 md:p-12 flex flex-col h-full bg-white">
+          <div className="p-8 md:p-12 flex flex-col h-full bg-white overflow-y-auto">
             <h2 className="text-4xl text-[#285153] font-bold mb-4 font-serif">Product details</h2>
             
             <h3 className="text-3xl text-[#285153] font-bold mb-2">{product.name}</h3>
             <p className="text-gray-600 font-semibold mb-2">
-              {product.producer?.shop_name || product.farm || "Local Farm"}
+              {product.producer_name || product.producer?.shop_name || "Local Farm"}
             </p>
             
             <p className="text-[#8B7355] text-xl mb-4 font-bold">
               {formatPrice()}
             </p>
 
-            {/* Rating Stars - TODO: Add real ratings when backend supports it */}
-            <div className="flex text-yellow-400 mb-6">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="w-5 h-5 fill-current" />
-              ))}
-            </div>
-
-            <div className="space-y-2 mb-8 text-[#285153]">
+            <div className="space-y-2 mb-6 text-[#285153]">
               <p><span className="font-semibold">Category:</span> {getCategoryName()}</p>
               <p><span className="font-semibold">State:</span> {getProductState()}</p>
               <p><span className="font-semibold">Stock:</span> {product.stock} {product.sale_type === 'weight' ? 'kg' : 'units'} available</p>
-              {product.producer?.city && product.producer?.wilaya && (
-                <p><span className="font-semibold">Location:</span> {product.producer.city}, {product.producer.wilaya}</p>
+              {product.harvest_date && (
+                <p><span className="font-semibold">Harvest Date:</span> {new Date(product.harvest_date).toLocaleDateString()}</p>
               )}
             </div>
 
-            <div className="mb-8">
-              <h4 className="text-[#285153] font-bold mb-2">Description:</h4>
-              <p className="text-gray-700 leading-relaxed text-sm">
-                {product.description || "Fresh, high-quality local product directly from our farmers. Perfect for your daily needs."}
-              </p>
-            </div>
+            {/* Description */}
+            {product.description && (
+              <div className="mb-6">
+                <h4 className="text-[#285153] font-bold mb-2">Description:</h4>
+                <p className="text-gray-700 leading-relaxed text-sm">
+                  {product.description}
+                </p>
+              </div>
+            )}
 
             {/* Quantity selector */}
             <div className="mb-6 flex items-center gap-4">
