@@ -554,16 +554,16 @@ export default function StoresPage({
                                 </span>
                               </div>
                             )}
-                            {product.is_seasonal && (
-                              <span className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                De saison
-                              </span>
-                            )}
-                            {product.has_anti_waste_discount && (
-                              <span className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                -50%
-                              </span>
-                            )}
+                           {product.is_seasonal && (
+  <span className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+    🌱 In Season
+  </span>
+)}
+{product.has_anti_waste_discount && (
+  <span className="absolute top-12 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+    -50%
+  </span>
+)}
                           </div>
 
                           <div className="p-4">

@@ -381,6 +381,11 @@ export default function ProductsPage({
                           {getCategoryFallbackImage(product.product_type)}
                         </span>
                       </div>
+                       {product.is_seasonal && (
+    <span className="absolute top-2 left-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+      🌱 In Season
+    </span>
+  )}
                       {product.is_anti_gaspi && (
                         <span className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                           -50% Anti-gaspi

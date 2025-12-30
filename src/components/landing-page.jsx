@@ -527,50 +527,142 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Seasonal Offers Section */}
-      <section className="py-20 lg:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-16">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="text-4xl lg:text-5xl font-bold text-[#285153] mb-6">
-                Seasonal Offers
-              </h2>
-              <p className="text-xl font-semibold text-[#285153] mb-4">
-                Fresh Winter Oranges - Sweet, Juicy, and Locally Grown
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
-                Enjoy Algeria's finest winter oranges, harvested at peak ripeness for maximum flavor and nutrition. 
-                Thanks to abundant harvest this season, we're offering exceptional prices without compromising quality. 
-                Perfect for breakfast, fresh juice, or healthy snacks. Stock up now while supplies last!
-              </p>
-            </motion.div>
+    {/* Seasonal Products Section */}
+<section className="py-20 lg:py-28 bg-white">
+  <div className="max-w-7xl mx-auto px-6 lg:px-16">
+    <div className="text-center mb-12">
+      <h2 className="text-4xl lg:text-5xl font-bold text-[#285153] mb-4">
+        🌱 Seasonal Products
+      </h2>
+      <p className="text-xl text-gray-600 mb-2">
+        Fresh, In-Season Produce at Peak Flavor
+      </p>
+      <p className="text-lg text-gray-500">
+        Discover locally grown products harvested at their best time of year
+      </p>
+    </div>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative"
-            >
-              <img 
-                src={orangesImage} 
-                alt="Fresh oranges" 
-                className="w-full max-w-md mx-auto rounded-3xl shadow-2xl"
-              />
-              <motion.img 
-                animate={{ rotate: 10, y: [0, -5, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                src={decor2} alt="" className="absolute -bottom-10 -right-10 w-28 h-28 opacity-80" 
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
+    {loading ? (
+      <div className="text-center py-16">
+        <div className="inline-block w-12 h-12 border-4 border-[#285153] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 mt-4">Loading seasonal products...</p>
+      </div>
+    ) : products.filter(p => p.is_seasonal).length === 0 ? (
+      <div className="text-center py-16 bg-gradient-to-br from-teal-50 to-green-50 rounded-3xl">
+        <span className="text-7xl mb-4 block">🌱</span>
+        <h3 className="text-2xl font-bold text-[#285153] mb-2">No Seasonal Products Yet</h3>
+        <p className="text-gray-600 text-lg">Check back soon for fresh, in-season produce!</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {getVisibleProducts()
+          .filter(product => product.is_seasonal)
+          .slice(0, 3)
+          .map((product, index) => {
+            const imageUrl = getImageUrl(product.photo_url);
+            
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+                key={`seasonal-${product.id}-${index}`}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border-2 border-orange-200"
+              >
+                {/* Product Image with Seasonal Badge */}
+                <div className="relative">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={product.name}
+                      className="w-full h-56 object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-full h-56 bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center"
+                    style={{ display: imageUrl ? 'none' : 'flex' }}
+                  >
+                    <span className="text-9xl">
+                      {getCategoryFallbackImage(product.product_type)}
+                    </span>
+                  </div>
+
+                  {/* Seasonal Badge - PROMINENT */}
+                  <span className="absolute top-3 left-3 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                    🌱 In Season
+                  </span>
+
+                  {/* Anti-gaspi Badge */}
+                  {product.is_anti_gaspi && (
+                    <span className="absolute top-16 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                      -50% Off
+                    </span>
+                  )}
+
+                  {/* Category Badge */}
+                  {product.product_type && (
+                    <span className="absolute top-3 right-3 bg-[#285153] text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                      {product.product_type}
+                    </span>
+                  )}
+
+                  {/* Fresh Indicator Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
+                    <p className="text-white text-sm font-semibold">
+                      ✨ Peak Freshness & Nutrition
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold text-[#285153] mb-2">{product.name}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{product.producer_name || 'Local Farm'}</p>
+                  
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-green-700 font-medium">
+                      🍃 Harvested at the perfect time for maximum flavor and nutrition
+                    </p>
+                  </div>
+
+                  <p className="text-2xl font-bold text-orange-500 mb-4">
+                    {product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}
+                  </p>
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate('/products')}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold transition-colors shadow-md"
+                  >
+                    Get Fresh Now →
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })}
+      </div>
+    )}
+
+    {products.filter(p => p.is_seasonal).length > 0 && (
+      <div className="text-center mt-12">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/products')}
+          className="bg-orange-500 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg"
+        >
+          View All Seasonal Products
+        </motion.button>
+      </div>
+    )}
+  </div>
+</section>
 
       {/* Call to Action Section */}
       <section className="relative py-24 lg:py-32">
