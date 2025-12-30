@@ -527,19 +527,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-    {/* Seasonal Products Section */}
-<section className="py-20 lg:py-28 bg-white">
+    
+{/* Seasonal Products Section */}
+<section className="py-20 lg:py-28 bg-gray-50">
   <div className="max-w-7xl mx-auto px-6 lg:px-16">
     <div className="text-center mb-12">
       <h2 className="text-4xl lg:text-5xl font-bold text-[#285153] mb-4">
         🌱 Seasonal Products
       </h2>
-      <p className="text-xl text-gray-600 mb-2">
-        Fresh, In-Season Produce at Peak Flavor
-      </p>
-      <p className="text-lg text-gray-500">
-        Discover locally grown products harvested at their best time of year
-      </p>
+      <p className="text-lg text-gray-600">Fresh, in-season produce at peak flavor and nutrition</p>
     </div>
 
     {loading ? (
@@ -548,13 +544,11 @@ export default function LandingPage() {
         <p className="text-gray-600 mt-4">Loading seasonal products...</p>
       </div>
     ) : products.filter(p => p.is_seasonal).length === 0 ? (
-      <div className="text-center py-16 bg-gradient-to-br from-teal-50 to-green-50 rounded-3xl">
-        <span className="text-7xl mb-4 block">🌱</span>
-        <h3 className="text-2xl font-bold text-[#285153] mb-2">No Seasonal Products Yet</h3>
-        <p className="text-gray-600 text-lg">Check back soon for fresh, in-season produce!</p>
+      <div className="text-center py-16">
+        <p className="text-gray-600">No seasonal products available at the moment</p>
       </div>
     ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {getVisibleProducts()
           .filter(product => product.is_seasonal)
           .slice(0, 3)
@@ -569,15 +563,15 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
                 key={`seasonal-${product.id}-${index}`}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg border-2 border-orange-200"
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100"
               >
-                {/* Product Image with Seasonal Badge */}
+                {/* Product Image - SAME AS AVAILABLE PRODUCTS */}
                 <div className="relative">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
                       alt={product.name}
-                      className="w-full h-56 object-cover"
+                      className="w-full h-48 object-cover"
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
@@ -585,52 +579,37 @@ export default function LandingPage() {
                     />
                   ) : null}
                   <div 
-                    className="w-full h-56 bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center"
+                    className="w-full h-48 bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center"
                     style={{ display: imageUrl ? 'none' : 'flex' }}
                   >
-                    <span className="text-9xl">
+                    <span className="text-8xl">
                       {getCategoryFallbackImage(product.product_type)}
                     </span>
                   </div>
 
-                  {/* Seasonal Badge - PROMINENT */}
-                  <span className="absolute top-3 left-3 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                    🌱 In Season
-                  </span>
-
-                  {/* Anti-gaspi Badge */}
-                  {product.is_anti_gaspi && (
-                    <span className="absolute top-16 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-                      -50% Off
+                  {/* Badges - ADD SEASONAL BADGE */}
+                  {product.is_seasonal && (
+                    <span className="absolute top-2 left-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      🌱 In Season
                     </span>
                   )}
-
-                  {/* Category Badge */}
+                  {product.is_anti_gaspi && (
+                    <span className="absolute top-12 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      -50% Anti-Waste
+                    </span>
+                  )}
                   {product.product_type && (
-                    <span className="absolute top-3 right-3 bg-[#285153] text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                    <span className="absolute top-2 right-2 bg-[#285153] text-white px-3 py-1 rounded-full text-xs font-semibold">
                       {product.product_type}
                     </span>
                   )}
-
-                  {/* Fresh Indicator Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
-                    <p className="text-white text-sm font-semibold">
-                      ✨ Peak Freshness & Nutrition
-                    </p>
-                  </div>
                 </div>
 
+                {/* Same Content as Available Products */}
                 <div className="p-6">
-                  <h3 className="text-2xl font-bold text-[#285153] mb-2">{product.name}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{product.producer_name || 'Local Farm'}</p>
-                  
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-green-700 font-medium">
-                      🍃 Harvested at the perfect time for maximum flavor and nutrition
-                    </p>
-                  </div>
-
-                  <p className="text-2xl font-bold text-orange-500 mb-4">
+                  <h3 className="text-xl font-bold text-[#285153] mb-2">{product.name}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{product.product_type || 'Fresh Product'}</p>
+                  <p className="text-lg font-bold text-[#285153] mb-4">
                     {product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}
                   </p>
 
@@ -638,9 +617,9 @@ export default function LandingPage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => navigate('/products')}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold transition-colors shadow-md"
+                    className="w-full bg-[#285153] hover:bg-[#1a3839] text-white py-3 rounded-xl font-semibold transition-colors shadow-md"
                   >
-                    Get Fresh Now →
+                    View Details
                   </motion.button>
                 </div>
               </motion.div>
@@ -655,9 +634,9 @@ export default function LandingPage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/products')}
-          className="bg-orange-500 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg"
+          className="bg-[#285153] text-white px-10 py-4 rounded-full font-bold hover:bg-[#1a3839] transition-colors shadow-lg"
         >
-          View All Seasonal Products
+          See All Seasonal Products
         </motion.button>
       </div>
     )}
