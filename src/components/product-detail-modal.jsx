@@ -13,6 +13,10 @@ export default function ProductDetailModal({ product, onClose }) {
 
   if (!product) return null;
 
+  // Check if current user is the producer of this product
+  const currentUserId = authService.getCurrentUserId(); // You might need to add this method to authService
+  const isOwnProduct = currentUserId && product.producer_id === currentUserId;
+
   // Use actual product image
   const imageUrl = getImageUrl(product.photo_url || product.image);
   const images = imageUrl ? [imageUrl] : [];
@@ -36,6 +40,11 @@ export default function ProductDetailModal({ product, onClose }) {
   };
 
   const handleAddToCart = async () => {
+    if (isOwnProduct) {
+      alert("You cannot buy your own products");
+      return;
+    }
+
     const isAuthenticated = authService.isAuthenticated();
     
     if (!isAuthenticated) {
@@ -208,6 +217,15 @@ export default function ProductDetailModal({ product, onClose }) {
               </div>
             )}
 
+            {/* Own Product Warning */}
+            {isOwnProduct && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm font-semibold">
+                  ⚠️ This is your own product. You cannot purchase it.
+                </p>
+              </div>
+            )}
+
             {/* Quantity selector */}
             <div className="mb-6 flex items-center gap-4">
               <span className="text-[#285153] font-semibold">
@@ -216,7 +234,8 @@ export default function ProductDetailModal({ product, onClose }) {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={decreaseQuantity}
-                  className="p-2 bg-[#4A6768] rounded-full text-white hover:bg-[#3d5556] transition-colors"
+                  disabled={isOwnProduct}
+                  className="p-2 bg-[#4A6768] rounded-full text-white hover:bg-[#3d5556] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -225,7 +244,7 @@ export default function ProductDetailModal({ product, onClose }) {
                 </span>
                 <button 
                   onClick={increaseQuantity}
-                  disabled={quantity >= product.stock}
+                  disabled={quantity >= product.stock || isOwnProduct}
                   className="p-2 bg-[#4A6768] rounded-full text-white hover:bg-[#3d5556] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -243,10 +262,13 @@ export default function ProductDetailModal({ product, onClose }) {
             <div className="mt-auto flex gap-4">
               <button 
                 onClick={handleAddToCart}
-                disabled={loading || quantity > product.stock || product.stock === 0}
+                disabled={loading || quantity > product.stock || product.stock === 0 || isOwnProduct}
                 className="flex-1 bg-[#4A6768] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#3d5556] transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Adding..." : product.stock === 0 ? "Out of Stock" : "Add to Basket"}
+                {loading ? "Adding..." : 
+                 isOwnProduct ? "Cannot Buy Own Product" :
+                 product.stock === 0 ? "Out of Stock" : 
+                 "Add to Basket"}
               </button>
             </div>
           </div>

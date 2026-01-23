@@ -12,14 +12,14 @@ const productService = {
       
       // Product search
       if (filters.search) params.append('search', filters.search);
+    
       
-      // Producer search - ✅ ADDED
       if (filters.producer_search) params.append('producer_search', filters.producer_search);
       
-      // Product type/category - ✅ ADDED
+    
       if (filters.product_type) params.append('product_type', filters.product_type);
       
-      // Anti-gaspi filter - ✅ ADDED
+    
       if (filters.is_anti_gaspi) params.append('is_anti_gaspi', 'true');
       
       // Old filters (keep for backwards compatibility)
@@ -42,7 +42,7 @@ const productService = {
     }
   },
 
-  // ✅ NEW - Get producer's own products
+  
   getMyProducts: async () => {
     try {
       const response = await api.get('/my-products/');

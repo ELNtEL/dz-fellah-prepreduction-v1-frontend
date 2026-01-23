@@ -36,8 +36,8 @@ const authService = {
       // Store tokens and user info
       // FIXED: Use 'access' and 'refresh' to match api.js
       if (response.tokens?.access) {
-        localStorage.setItem('access', response.tokens.access);  // ✅ FIXED!
-        localStorage.setItem('refresh', response.tokens.refresh);  // ✅ FIXED!
+        localStorage.setItem('access', response.tokens.access);  //
+        localStorage.setItem('refresh', response.tokens.refresh);  //
         localStorage.setItem('user', JSON.stringify(response.user));
       }
       
@@ -57,8 +57,8 @@ const authService = {
     } finally {
       // Clear local storage regardless
       // FIXED: Use 'access' and 'refresh' to match api.js
-      localStorage.removeItem('access');  // ✅ FIXED!
-      localStorage.removeItem('refresh');  // ✅ FIXED!
+      localStorage.removeItem('access');  // 
+      localStorage.removeItem('refresh');  //
       localStorage.removeItem('user');
     }
   },
@@ -69,9 +69,15 @@ const authService = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
+  // Get current user ID
+  getCurrentUserId: () => {
+    const user = authService.getCurrentUser();
+    return user?.id || null;
+  },
+
   // Check if authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem('access');  // ✅ FIXED!
+    return !!localStorage.getItem('access');  // 
   },
 };
 
