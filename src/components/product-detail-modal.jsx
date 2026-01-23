@@ -14,7 +14,7 @@ export default function ProductDetailModal({ product, onClose }) {
   if (!product) return null;
 
   // Check if current user is the producer of this product
-  const currentUserId = authService.getCurrentUserId(); // You might need to add this method to authService
+  const currentUserId = authService.getCurrentUserId();
   const isOwnProduct = currentUserId && product.producer_id === currentUserId;
 
   // Use actual product image
@@ -41,14 +41,12 @@ export default function ProductDetailModal({ product, onClose }) {
 
   const handleAddToCart = async () => {
     if (isOwnProduct) {
-      alert("You cannot buy your own products");
-      return;
+      return; // Silently prevent - button is already disabled
     }
 
     const isAuthenticated = authService.isAuthenticated();
     
     if (!isAuthenticated) {
-      alert("Please login to add items to cart");
       navigate("/login");
       return;
     }
@@ -56,11 +54,10 @@ export default function ProductDetailModal({ product, onClose }) {
     setLoading(true);
     try {
       await cartService.addToCart(product.id, quantity);
-      alert(`${product.name} added to cart!`);
-      onClose();
+      onClose(); // Just close modal - cart badge will update
     } catch (err) {
       console.error('Failed to add to cart:', err);
-      alert('Failed to add to cart. Please try again.');
+      // Optionally show error in console, but no alert popup
     } finally {
       setLoading(false);
     }
@@ -221,7 +218,7 @@ export default function ProductDetailModal({ product, onClose }) {
             {isOwnProduct && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-yellow-800 text-sm font-semibold">
-                  ⚠️ This is your own product. You cannot purchase it.
+                   This is your own product. You cannot purchase it.
                 </p>
               </div>
             )}
