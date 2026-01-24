@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Search, ChevronLeft, ChevronRight, X, Star } from "lucide-react";
 import ProductDetailModal from "./product-detail-modal";
@@ -78,9 +78,43 @@ export default function ProductsPage({
     { value: 'Other', label: '📦 Other', emoji: '📦' },
   ];
 
+  const refetchRatings = useCallback(async () => {
+    if (products.length === 0) return;
+
+    const ratings = {};
+    for (const product of products) {
+      try {
+        const rating = await ratingService.getProductRatings(product.id);
+        ratings[product.id] = {
+          average_rating: rating?.average_rating || 0,
+          total_ratings: rating?.total_ratings || 0
+        };
+      } catch (err) {
+        ratings[product.id] = { average_rating: 0, total_ratings: 0 };
+      }
+    }
+    setProductRatings(ratings);
+  }, [products]);
+
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    // Refetch ratings when component becomes visible (e.g., after rating in orders page)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Silently refetch just the ratings when page becomes visible
+        refetchRatings();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refetchRatings]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -411,6 +445,7 @@ export default function ProductsPage({
                       
                       {/* Product Rating */}
                       <div className="mb-2">
+                        {console.log(`🌟 Product ${product.id} (${product.name}) Rating:`, rating)}
                         <StarRating rating={rating.average_rating} count={rating.total_ratings} />
                       </div>
                       

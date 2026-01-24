@@ -259,6 +259,7 @@ export default function ProductDetailModal({ product, onClose }) {
 
             {/* Product Rating */}
             <div className="mb-3">
+              {console.log('🌟 Product Rating Data:', productRating)}
               <StarRating rating={productRating.average_rating} count={productRating.total_ratings} />
             </div>
 
