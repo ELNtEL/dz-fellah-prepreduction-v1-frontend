@@ -41,12 +41,12 @@ function AuthLayout({ children, mode }) {
   const isLogin = mode === "login";
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Left Sidebar */}
       <div className="hidden md:flex md:w-1/2 bg-[#285153] flex-col p-12 lg:p-16 items-center text-center">
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center cursor-pointer" onClick={() => navigate("/")}>
           <div className="flex items-center gap-2">
             <img src={logoImage} alt="FELLAH Logo" className="h-10 w-auto" />
+          </div>
+        </div>
           </div>
         </div>
 
@@ -83,14 +83,14 @@ function AuthLayout({ children, mode }) {
           </div>
         </div>
       </div>
-
       <div className="w-full md:w-1/2 flex flex-col justify-center p-6 sm:p-8 lg:p-12">
         <div className="md:hidden mb-8">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-4 cursor-pointer" onClick={() => navigate("/")}>
             <img
               src={logoImage}
               alt="FELLAH Logo"
               className="h-16 w-auto mb-4"
+            />
             />
           </div>
         </div>

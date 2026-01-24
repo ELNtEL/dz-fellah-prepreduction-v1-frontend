@@ -15,6 +15,7 @@ import decor4 from "../assets/decoration4.png";
 import PublicNavBar from './PublicNavBar';
 import productService from '../services/productService';
 import basketService from '../services/basketService';
+import authService from '../services/authService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Category fallback for backwards compatibility
@@ -29,9 +30,7 @@ export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [basketsLoading, setBasketsLoading] = useState(true);
-
-  const isAuthenticated = () => {
+  const isAuthenticated = authService.isAuthenticated();
     return !!localStorage.getItem('token');
   };
 
@@ -176,9 +175,15 @@ export default function LandingPage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleJoinUs}
                 className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-              >
-                {isAuthenticated() ? 'Browse Products' : 'Join Us'}
-              </motion.button>
+                {!isAuthenticated && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleJoinUs}
+                    className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
+                  >
+                    Join Us
+                  </motion.button>
             </motion.div>
 
             <motion.div 
