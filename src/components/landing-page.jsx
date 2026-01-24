@@ -30,12 +30,12 @@ export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isAuthenticated = authService.isAuthenticated();
+  const isAuthenticated = authService.isAuthenticated;
     return !!localStorage.getItem('token');
   };
 
   const handleJoinUs = () => {
-    if (isAuthenticated()) {
+    if (isAuthenticated) {
       navigate('/products');
     } else {
       navigate('/signup');
@@ -170,20 +170,16 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleJoinUs}
-                className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-                {!isAuthenticated && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleJoinUs}
-                    className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-                  >
-                    Join Us
-                  </motion.button>
+              {!isAuthenticated && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleJoinUs}
+                  className="bg-white text-[#285153] px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
+                >
+                  Join Us
+                </motion.button>
+              )}
             </motion.div>
 
             <motion.div 
@@ -676,7 +672,7 @@ export default function LandingPage() {
               onClick={handleJoinUs}
               className="bg-white text-[#285153] px-12 py-5 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-2xl"
             >
-              {isAuthenticated() ? 'Start Shopping' : 'Get Started'}
+              {isAuthenticated ? 'Start Shopping' : 'Get Started'}
             </motion.button>
           </motion.div>
         </div>
