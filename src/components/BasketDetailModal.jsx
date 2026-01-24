@@ -4,6 +4,7 @@ import { X, Star, ShoppingBag, Package, Calendar, TrendingDown } from 'lucide-re
 import ratingService from '../services/ratingService';
 import authService from '../services/authService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
+import basketpng from "../assets/basketpng.png";
 
 // Star Rating Display Component
 const StarRating = ({ rating = 0, count = 0 }) => {
@@ -111,7 +112,11 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
           {/* Basket Emoji Overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative">
-              <span className="text-9xl drop-shadow-2xl">🧺</span>
+              <img
+                          src={basketpng}
+                          alt="Subscription Basket"
+                          className="inline-block w-20 h-20 drop-shadow-2xl align-middle object-contain"
+                        />
               {basket.discount_percentage > 0 && (
                 <div className="absolute -top-4 -right-4 bg-red-500 text-white px-3 py-1 rounded-full font-bold text-sm shadow-lg animate-pulse">
                   -{basket.discount_percentage}%
@@ -305,7 +310,7 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
                 Subscribe to this Basket
               </button>
               <p className="text-xs text-gray-500 text-center mt-2">
-                🔄 Cancel anytime • 📦 Flexible delivery • ✨ Fresh products weekly
+                🔄 Cancel anytime •  Flexible delivery • ✨ Fresh products weekly
               </p>
             </div>
           ) : (

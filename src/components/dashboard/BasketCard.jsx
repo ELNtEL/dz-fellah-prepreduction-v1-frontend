@@ -24,7 +24,7 @@ function BasketCard({ basket, onEdit, onDelete }) {
                 )}
                 
                 <div className="basket-emoji-overlay">
-                    <span className="basket-emoji">🧺</span>
+                    <span className="basket-emoji">🛒</span>
                 </div>
 
                 {discount_percentage > 0 && (
