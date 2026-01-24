@@ -12,7 +12,7 @@ const ratingService = {
         product_id: productId,
         rating: rating
       });
-      return response.data;
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Rate product error:', error);
       throw error;
@@ -23,7 +23,7 @@ const ratingService = {
   getProductRatings: async (productId) => {
     try {
       const response = await api.get(`/products/${productId}/ratings/`);
-      return response.data;
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Get product ratings error:', error);
       throw error;
@@ -34,7 +34,7 @@ const ratingService = {
   getMyRating: async (productId) => {
     try {
       const response = await api.get(`/products/${productId}/my-rating/`);
-      return response.data;
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Get my rating error:', error);
       throw error;
@@ -45,7 +45,7 @@ const ratingService = {
   deleteRating: async (productId) => {
     try {
       const response = await api.delete(`/products/${productId}/rating/`);
-      return response.data;
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Delete rating error:', error);
       throw error;
@@ -56,7 +56,7 @@ const ratingService = {
   getProducerRating: async (producerId) => {
     try {
       const response = await api.get(`/products/producer/${producerId}/rating/`);
-      return response.data;
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Get producer rating error:', error);
       throw error;
