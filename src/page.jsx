@@ -5,6 +5,7 @@ import SignupForm from "./components/signup-form";
 import SignupSecondaryForm from "./components/signup-secondary-form";
 import ProductsPage from "./components/products-page";
 import StoresPage from "./components/stores-page";
+import SingleStorePage from "./components/SingleStorePage";
 import LandingPage from "./components/landing-page";
 import BrowseSubscriptionBasketsPage from "./components/BrowseSubscriptionBasketsPage";
 import NotFoundPage from "./components/not-found-page";
@@ -195,8 +196,8 @@ export default function App() {
           />
         } 
       />
-      <Route 
-        path="/stores" 
+      <Route
+        path="/stores"
         element={
           <StoresPage
             onNavigateToHome={() => navigate("/")}
@@ -204,11 +205,21 @@ export default function App() {
             onNavigateToSignup={() => navigate("/signup")}
             onNavigateToProducts={() => navigate("/products")}
           />
-        } 
+        }
       />
-      <Route 
-        path="/subscriptions" 
-        element={<BrowseSubscriptionBasketsPage />} 
+      <Route
+        path="/stores/:storeId"
+        element={
+          <SingleStorePage
+            onNavigateToHome={() => navigate("/")}
+            onNavigateToLogin={() => navigate("/login")}
+            onNavigateToSignup={() => navigate("/signup")}
+          />
+        }
+      />
+      <Route
+        path="/subscriptions"
+        element={<BrowseSubscriptionBasketsPage />}
       />
       
       {/* Auth Routes */}

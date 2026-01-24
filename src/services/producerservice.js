@@ -32,8 +32,8 @@ const producerService = {
   // Get single producer details
   getProducerById: async (producerId) => {
     try {
-      const response = await api.get(`/producers/${producerId}`);
-      return response.data;
+      const response = await api.get(`/producers/${producerId}/`);
+      return response; // Interceptor already returns response.data
     } catch (error) {
       console.error('Get producer error:', error);
       throw error;
