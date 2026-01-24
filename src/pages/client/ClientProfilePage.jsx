@@ -76,8 +76,50 @@ const ClientProfilePage = () => {
         setAddressData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleProfilePhotoUpload = (imageData) => {
-        setProfileData(prev => ({ ...prev, avatar: imageData }));
+    const handleProfilePhotoUpload = (file) => {
+        console.log('📸 File received:', file);
+        if (!file) {
+            console.error('❌ No file provided!');
+            return;
+        }
+
+        const img = new Image();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            const maxSize = 800;
+
+            // Resize while maintaining aspect ratio
+            if (width > height) {
+                if (width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to JPEG with 0.7 quality
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            console.log('✅ Compressed base64 length:', compressedBase64.length);
+            setProfileData(prev => ({ ...prev, avatar: compressedBase64 }));
+        };
+
+        img.onerror = (error) => {
+            console.error('❌ Image load error:', error);
+        };
+
+        img.src = URL.createObjectURL(file);
     };
 
     const handleSaveProfile = async () => {
@@ -193,7 +235,7 @@ const ClientProfilePage = () => {
                     <UploadBox
                         title="Upload profile photo"
                         preview={profileData.avatar}
-                        onUpload={handleProfilePhotoUpload}
+                        onFileSelect={handleProfilePhotoUpload}
                     />
 
                     <div className="form-group" style={{ marginTop: '30px' }}>
