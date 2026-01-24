@@ -30,9 +30,9 @@ export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isAuthenticated = authService.isAuthenticated;
-    return !!localStorage.getItem('token');
-  };
+  const [basketsLoading, setBasketsLoading] = useState(true);
+
+  const isAuthenticated = authService.isAuthenticated();
 
   const handleJoinUs = () => {
     if (isAuthenticated) {
