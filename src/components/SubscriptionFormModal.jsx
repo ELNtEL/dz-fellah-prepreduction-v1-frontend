@@ -16,7 +16,7 @@ function SubscriptionFormModal({ basket, onClose }) {
   };
 
   const handleDeliveryConfirm = async (data) => {
-  console.log('📥 Delivery data received:', data); // ✅ SEE WHAT'S SENT
+  console.log('📥 Delivery data received:', data); // 
   setDeliveryData(data);
   setShowDeliveryModal(false);
   
@@ -34,7 +34,7 @@ const handleSubscribe = async (data) => {
       pickup_point_id: data.pickup_point_id,
     };
 
-    console.log('📤 Sending subscription data:', subscriptionData); // ✅ SEE PAYLOAD
+    console.log('📤 Sending subscription data:', subscriptionData); // 
 
     await subscriptionService.subscribe(subscriptionData);
     showToast('Successfully subscribed to basket!', 'success');
@@ -45,8 +45,8 @@ const handleSubscribe = async (data) => {
     }, 2000);
   } catch (err) {
     console.error('❌ Subscription error:', err);
-    console.error('❌ Error response:', err.response?.data); // ✅ SEE BACKEND ERROR
-    console.error('❌ Status code:', err.response?.status); // ✅ SEE STATUS
+    console.error('❌ Error response:', err.response?.data); // 
+    console.error('❌ Status code:', err.response?.status); // 
     showToast(err.response?.data?.error || 'Failed to subscribe. Please try again.', 'error');
     setShowDeliveryModal(true);
   } finally {

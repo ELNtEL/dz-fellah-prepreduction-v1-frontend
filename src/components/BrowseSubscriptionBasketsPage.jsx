@@ -13,6 +13,8 @@ import { getImageUrl } from "../utils/imageUtils";
 import farmerImage from "../assets/basket.png";
 import leafImage from "../assets/leaf.png";
 import decor1 from "../assets/decoration.png";
+// This import is already here in your code, so we will use it below
+import basketpng from "../assets/basketpng.png";
 
 // Get unique categories from products
 const getProductCategories = (products) => {
@@ -25,12 +27,12 @@ export default function BrowseSubscriptionBasketsPage() {
   const navigate = useNavigate();
   const [selectedBasket, setSelectedBasket] = useState(null);
   const [subscriptionBasket, setSubscriptionBasket] = useState(null);
-  
+
   const [filters, setFilters] = useState({
     search: '',
     producer_search: ''
   });
-  
+
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,16 +44,16 @@ export default function BrowseSubscriptionBasketsPage() {
   const fetchBaskets = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const apiFilters = {};
-      
+
       if (filters.search) apiFilters.search = filters.search;
       if (filters.producer_search) apiFilters.producer_id = filters.producer_search;
-      
+
       const response = await basketService.getAllBaskets(apiFilters);
       const fetchedBaskets = response.baskets || [];
-      
+
       // Fetch details for each basket to get products and categories
       const basketsWithDetails = await Promise.all(
         fetchedBaskets.map(async (basket) => {
@@ -71,7 +73,7 @@ export default function BrowseSubscriptionBasketsPage() {
           }
         })
       );
-      
+
       setBaskets(basketsWithDetails);
     } catch (err) {
       console.error('Failed to fetch baskets:', err);
@@ -114,7 +116,7 @@ export default function BrowseSubscriptionBasketsPage() {
       navigate('/login');
       return;
     }
-    
+
     setSubscriptionBasket(basket);
   };
 
@@ -278,7 +280,7 @@ export default function BrowseSubscriptionBasketsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
                   >
-                    {/* Basket Image with Banner + Emoji */}
+                    {/* Basket Image with Banner + Overlay Image */}
                     <div className="relative h-48">
                       {/* Producer Banner Background */}
                       {bannerUrl ? (
@@ -292,28 +294,32 @@ export default function BrowseSubscriptionBasketsPage() {
                           }}
                         />
                       ) : null}
-                      <div 
+                      <div
                         className="w-full h-full bg-gradient-to-br from-green-100 to-teal-100"
                         style={{ display: bannerUrl ? 'none' : 'block' }}
                       ></div>
-                      
+
                       {/* Dark gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-                      
-                      {/* Basket Emoji Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-7xl filter drop-shadow-2xl">🧺</span>
+
+                      {/* Basket Image Overlay (Replaced the hardcoded laundry image) */}
+                      <div className="absolute inset-0 flex items-center justify-center z-10 p-4">
+                        <img
+                          src={basketpng}
+                          alt="Subscription Basket"
+                          className="inline-block w-20 h-20 drop-shadow-2xl align-middle object-contain"
+                        />
                       </div>
 
                       {/* Discount Badge */}
                       {basket.discount_percentage > 0 && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg z-10">
+                        <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg z-20">
                           -{basket.discount_percentage}% OFF
                         </div>
                       )}
 
                       {/* Producer Name at Bottom */}
-                      <div className="absolute bottom-2 left-2 right-2 z-10">
+                      <div className="absolute bottom-2 left-2 right-2 z-20">
                         <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg">
                           <div className="flex items-center gap-2">
                             <Store className="w-4 h-4 text-[#285153]" />
@@ -334,7 +340,7 @@ export default function BrowseSubscriptionBasketsPage() {
                         <div className="mb-3">
                           <div className="flex flex-wrap gap-1.5">
                             {basket.categories.map((category, index) => (
-                              <span 
+                              <span
                                 key={index}
                                 className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded"
                               >
