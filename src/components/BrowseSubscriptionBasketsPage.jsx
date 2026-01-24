@@ -268,7 +268,9 @@ export default function BrowseSubscriptionBasketsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {baskets.map((basket) => {
                 const bannerUrl = getImageUrl(basket.producer_banner);
-                
+                const currentUserId = authService.getCurrentUserId();
+                const isOwnBasket = currentUserId && basket.producer_id === currentUserId;
+
                 return (
                   <motion.div
                     key={basket.id}
@@ -378,17 +380,24 @@ export default function BrowseSubscriptionBasketsPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewDetails(basket.id)}
-                          className="flex-1 py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition"
+                          className={`${isOwnBasket ? 'w-full' : 'flex-1'} py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition`}
                         >
                           View Details
                         </button>
-                        <button
-                          onClick={() => handleSubscribeClick(basket)}
-                          className="flex-1 py-2 bg-[#285153] text-white rounded-lg font-semibold text-sm hover:bg-[#1f3f40] transition"
-                        >
-                          Subscribe
-                        </button>
+                        {!isOwnBasket && (
+                          <button
+                            onClick={() => handleSubscribeClick(basket)}
+                            className="flex-1 py-2 bg-[#285153] text-white rounded-lg font-semibold text-sm hover:bg-[#1f3f40] transition"
+                          >
+                            Subscribe
+                          </button>
+                        )}
                       </div>
+                      {isOwnBasket && (
+                        <p className="text-xs text-amber-700 text-center mt-2 font-medium">
+                          📦 Your basket
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 );

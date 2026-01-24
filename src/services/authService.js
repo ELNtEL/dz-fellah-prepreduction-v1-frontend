@@ -77,7 +77,23 @@ const authService = {
 
   // Check if authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem('access');  // 
+    return !!localStorage.getItem('access');  //
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.patch('/users/update_me/', profileData);
+
+      // Update user in local storage
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+
+      return response;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   },
 };
 

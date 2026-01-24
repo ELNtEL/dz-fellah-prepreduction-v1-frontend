@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UploadBox from '../../components/dashboard/UploadBox';
+import authService from '../../services/authService';
 
 const ClientProfilePage = () => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -81,36 +82,57 @@ const ClientProfilePage = () => {
 
     const handleSaveProfile = async () => {
         try {
-            // TODO: Call API to update profile
-            // await userService.updateProfile(profileData);
-            
-            // Update localStorage
-            const updatedUser = {
-                ...user,
+            // Prepare update data
+            const updateData = {
                 first_name: profileData.name.split(' ')[0],
-                last_name: profileData.name.split(' ').slice(1).join(' '),
+                last_name: profileData.name.split(' ').slice(1).join(' ') || '',
                 email: profileData.email,
                 avatar: profileData.avatar
             };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser);
-            
+
+            // Add password if provided
+            if (profileData.password && profileData.password.trim() !== '') {
+                updateData.password = profileData.password;
+            }
+
+            // Call API to update profile
+            const response = await authService.updateProfile(updateData);
+
+            // Update local state with response
+            setUser(response.user);
+
             alert('Profile updated successfully!');
+
+            // Clear password field after successful update
+            setProfileData(prev => ({ ...prev, password: '' }));
         } catch (error) {
             console.error('Failed to update profile:', error);
-            alert('Failed to update profile. Please try again.');
+            const errorMessage = error.error || error.message || 'Failed to update profile. Please try again.';
+            alert(errorMessage);
         }
     };
 
     const handleSaveAddress = async () => {
         try {
-            // TODO: Call API to update address
-            // await userService.updateAddress(addressData);
-            
+            // Prepare update data
+            const updateData = {
+                address: addressData.address,
+                city: addressData.city,
+                wilaya: addressData.wilaya,
+                phone: addressData.phone
+            };
+
+            // Call API to update address
+            const response = await authService.updateProfile(updateData);
+
+            // Update local state with response
+            setUser(response.user);
+
             alert('Delivery address saved successfully!');
         } catch (error) {
             console.error('Failed to update address:', error);
-            alert('Failed to update address. Please try again.');
+            const errorMessage = error.error || error.message || 'Failed to update address. Please try again.';
+            alert(errorMessage);
         }
     };
 

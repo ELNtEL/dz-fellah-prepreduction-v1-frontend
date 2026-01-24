@@ -1,15 +1,73 @@
 import { X, ShoppingBasket, ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import cartService from "../services/cartService";
 import authService from "../services/authService";
+import ratingService from "../services/ratingService";
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
+
+// Star Rating Display Component
+const StarRating = ({ rating, count }) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-4 h-4 ${
+            star <= fullStars
+              ? 'fill-yellow-400 text-yellow-400'
+              : star === fullStars + 1 && hasHalfStar
+              ? 'fill-yellow-200 text-yellow-400'
+              : 'fill-none text-gray-300'
+          }`}
+        />
+      ))}
+      <span className="text-sm text-gray-600 ml-1">
+        {rating > 0 ? `${rating.toFixed(1)}` : 'No ratings'}
+        {count > 0 && ` (${count})`}
+      </span>
+    </div>
+  );
+};
 
 export default function ProductDetailModal({ product, onClose }) {
   const navigate = useNavigate();
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [productRating, setProductRating] = useState({ average_rating: 0, total_ratings: 0 });
+  const [producerRating, setProducerRating] = useState({ average_rating: 0, total_ratings: 0 });
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (!product) return;
+
+      try {
+        // Fetch product rating
+        const rating = await ratingService.getProductRatings(product.id);
+        setProductRating(rating);
+      } catch (err) {
+        console.error('Failed to fetch product rating:', err);
+        setProductRating({ average_rating: 0, total_ratings: 0 });
+      }
+
+      try {
+        // Fetch producer rating if producer_id exists
+        if (product.producer_id) {
+          const pRating = await ratingService.getProducerRating(product.producer_id);
+          setProducerRating(pRating);
+        }
+      } catch (err) {
+        console.error('Failed to fetch producer rating:', err);
+        setProducerRating({ average_rating: 0, total_ratings: 0 });
+      }
+    };
+
+    fetchRatings();
+  }, [product]);
 
   if (!product) return null;
 
@@ -190,7 +248,20 @@ export default function ProductDetailModal({ product, onClose }) {
             <p className="text-gray-600 font-semibold mb-2">
               {product.producer_name || product.producer?.shop_name || "Local Farm"}
             </p>
-            
+
+            {/* Product Rating */}
+            <div className="mb-3">
+              <StarRating rating={productRating.average_rating} count={productRating.total_ratings} />
+            </div>
+
+            {/* Producer Rating */}
+            {producerRating.total_ratings > 0 && (
+              <div className="mb-3 p-2 bg-amber-50 rounded-lg">
+                <p className="text-xs text-gray-600 mb-1">Producer Rating:</p>
+                <StarRating rating={producerRating.average_rating} count={producerRating.total_ratings} />
+              </div>
+            )}
+
             <p className="text-[#8B7355] text-xl mb-4 font-bold">
               {formatPrice()}
             </p>

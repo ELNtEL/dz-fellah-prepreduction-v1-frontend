@@ -1,25 +1,31 @@
 import { FiCheck } from 'react-icons/fi';
 import { Calendar, MapPin, Package } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
+import authService from '../../services/authService';
 import './css-weekly/ClientBasketCard.css';
 
 function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetails }) {
 
     // ✅ FIX: Use basket data directly (already restructured in parent)
-    const { 
-        id, 
-        name, 
-        producer_banner, 
+    const {
+        id,
+        name,
+        producer_banner,
         producer_shop_name,
-        discount_percentage, 
-        original_price, 
-        discounted_price, 
-        product_count, 
+        producer_id,
+        discount_percentage,
+        original_price,
+        discounted_price,
+        product_count,
         pickup_day,
         products  // ✅ ADD THIS
     } = basket;
-    
+
     const bannerUrl = getImageUrl(producer_banner);
+
+    // Check if current user is the producer of this basket
+    const currentUserId = authService.getCurrentUserId();
+    const isOwnBasket = currentUserId && producer_id === currentUserId;
 
     return (
         <div className="basket-card">
@@ -220,12 +226,27 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                         >
                             VIEW DETAILS
                         </button>
-                        <button
-                            className="basket-btn add-btn"
-                            onClick={() => {/* Subscribe logic */}}
-                        >
-                            SUBSCRIBE
-                        </button>
+                        {!isOwnBasket && (
+                            <button
+                                className="basket-btn add-btn"
+                                onClick={() => {/* Subscribe logic */}}
+                            >
+                                SUBSCRIBE
+                            </button>
+                        )}
+                        {isOwnBasket && (
+                            <div style={{
+                                padding: '8px',
+                                backgroundColor: '#fef3c7',
+                                borderRadius: '8px',
+                                textAlign: 'center',
+                                fontSize: '12px',
+                                color: '#92400e',
+                                fontWeight: '600'
+                            }}>
+                                📦 Your basket
+                            </div>
+                        )}
                     </>
                 )}
             </div>

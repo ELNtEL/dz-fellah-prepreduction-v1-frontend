@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Star, ShoppingBag, Package, Calendar, TrendingDown } from 'lucide-react';
 import ratingService from '../services/ratingService';
+import authService from '../services/authService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Star Rating Display Component
@@ -34,6 +35,10 @@ const StarRating = ({ rating, count }) => {
 function BasketDetailModal({ basket, onClose, onSubscribe }) {
   const [producerRating, setProducerRating] = useState({ average_rating: 0, total_ratings: 0 });
   const [productRatings, setProductRatings] = useState({});
+
+  // Check if current user is the producer of this basket
+  const currentUserId = authService.getCurrentUserId();
+  const isOwnBasket = currentUserId && basket?.producer_id === currentUserId;
 
   useEffect(() => {
     const fetchRatings = async () => {
@@ -285,18 +290,28 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
             )}
           </div>
 
-          {/* Subscribe Button */}
-          <div className="sticky bottom-0 bg-white pt-4 border-t">
-            <button 
-              onClick={() => onSubscribe && onSubscribe(basket)}
-              className="w-full py-4 bg-[#285153] text-white rounded-xl font-bold text-lg hover:bg-[#1f3f40] transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              Subscribe to this Basket
-            </button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              🔄 Cancel anytime • 📦 Flexible delivery • ✨ Fresh products weekly
-            </p>
-          </div>
+          {/* Subscribe Button - Hidden for producers viewing their own baskets */}
+          {!isOwnBasket ? (
+            <div className="sticky bottom-0 bg-white pt-4 border-t">
+              <button
+                onClick={() => onSubscribe && onSubscribe(basket)}
+                className="w-full py-4 bg-[#285153] text-white rounded-xl font-bold text-lg hover:bg-[#1f3f40] transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                Subscribe to this Basket
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                🔄 Cancel anytime • 📦 Flexible delivery • ✨ Fresh products weekly
+              </p>
+            </div>
+          ) : (
+            <div className="sticky bottom-0 bg-white pt-4 border-t">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-amber-800 text-center font-semibold">
+                  📦 This is your basket. You cannot subscribe to your own baskets.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

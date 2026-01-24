@@ -1,12 +1,12 @@
 export const getImageUrl = (path) => {
   if (!path) return null;
 
-  // If it's a base64 data URL, return as-is
+  
   if (path.startsWith('data:image/')) {
     return path;
   }
 
-  // If already a full URL, return as-is
+s
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
@@ -17,8 +17,8 @@ export const getImageUrl = (path) => {
 };
 /**
  * Get category fallback emoji for products
- * @param {string} category - Product category
- * @returns {string} - Emoji for the category
+ * @param {string} category 
+ * @returns {string} 
  */
 export const getCategoryFallbackEmoji = (category) => {
   const fallbacks = {
