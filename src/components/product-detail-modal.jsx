@@ -7,9 +7,11 @@ import ratingService from "../services/ratingService";
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Star Rating Display Component
-const StarRating = ({ rating, count }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+const StarRating = ({ rating = 0, count = 0 }) => {
+  const safeRating = rating || 0;
+  const safeCount = count || 0;
+  const fullStars = Math.floor(safeRating);
+  const hasHalfStar = safeRating % 1 >= 0.5;
 
   return (
     <div className="flex items-center gap-1">
@@ -26,8 +28,8 @@ const StarRating = ({ rating, count }) => {
         />
       ))}
       <span className="text-sm text-gray-600 ml-1">
-        {rating > 0 ? `${rating.toFixed(1)}` : 'No ratings'}
-        {count > 0 && ` (${count})`}
+        {safeRating > 0 ? `${safeRating.toFixed(1)}` : 'No ratings'}
+        {safeCount > 0 && ` (${safeCount})`}
       </span>
     </div>
   );
@@ -48,7 +50,10 @@ export default function ProductDetailModal({ product, onClose }) {
       try {
         // Fetch product rating
         const rating = await ratingService.getProductRatings(product.id);
-        setProductRating(rating);
+        setProductRating({
+          average_rating: rating?.average_rating || 0,
+          total_ratings: rating?.total_ratings || 0
+        });
       } catch (err) {
         console.error('Failed to fetch product rating:', err);
         setProductRating({ average_rating: 0, total_ratings: 0 });
@@ -58,7 +63,10 @@ export default function ProductDetailModal({ product, onClose }) {
         // Fetch producer rating if producer_id exists
         if (product.producer_id) {
           const pRating = await ratingService.getProducerRating(product.producer_id);
-          setProducerRating(pRating);
+          setProducerRating({
+            average_rating: pRating?.average_rating || 0,
+            total_ratings: pRating?.total_ratings || 0
+          });
         }
       } catch (err) {
         console.error('Failed to fetch producer rating:', err);

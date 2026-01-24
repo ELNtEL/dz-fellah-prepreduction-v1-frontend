@@ -6,10 +6,12 @@ import authService from '../services/authService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 
 // Star Rating Display Component
-const StarRating = ({ rating, count }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  
+const StarRating = ({ rating = 0, count = 0 }) => {
+  const safeRating = rating || 0;
+  const safeCount = count || 0;
+  const fullStars = Math.floor(safeRating);
+  const hasHalfStar = safeRating % 1 >= 0.5;
+
   return (
     <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -25,8 +27,8 @@ const StarRating = ({ rating, count }) => {
         />
       ))}
       <span className="text-sm text-gray-600 ml-1">
-        {rating > 0 ? `${rating.toFixed(1)}` : 'No ratings'}
-        {count > 0 && ` (${count})`}
+        {safeRating > 0 ? `${safeRating.toFixed(1)}` : 'No ratings'}
+        {safeCount > 0 && ` (${safeCount})`}
       </span>
     </div>
   );
@@ -50,7 +52,10 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
         for (const product of basket.products || []) {
           try {
             const rating = await ratingService.getProductRatings(product.id);
-            ratings[product.id] = rating;
+            ratings[product.id] = {
+              average_rating: rating?.average_rating || 0,
+              total_ratings: rating?.total_ratings || 0
+            };
           } catch (err) {
             ratings[product.id] = { average_rating: 0, total_ratings: 0 };
           }
