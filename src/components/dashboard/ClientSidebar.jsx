@@ -6,8 +6,12 @@ import logo from "../../assets/dashboard/images/logo.png";
 const ClientSidebar = ({ cartItemCount = 0 }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const activePage = location.pathname.split('/')[2] || 'profile';
+
+    // Get current user to check user type
+    const currentUser = authService.getCurrentUser();
+    const isClient = currentUser?.user_type === 'client';
     
     const handlePageChange = (page) => {
         navigate(`/client/${page}`);
@@ -76,7 +80,7 @@ const ClientSidebar = ({ cartItemCount = 0 }) => {
                 </button>
 
                 {/* Only show subscriptions for clients */}
-                {localStorage.getItem('userType') === 'client' && (
+                {isClient && (
                     <button
                         className={`sidebar-nav-item ${activePage === 'subscriptions' ? 'active' : ''}`}
                         onClick={() => handlePageChange('subscriptions')}
