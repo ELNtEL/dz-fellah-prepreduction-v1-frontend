@@ -23,7 +23,11 @@ export default function StoresPage({
 
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   const wilayas = [
     'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar',
@@ -36,20 +40,23 @@ export default function StoresPage({
   ];
 
   useEffect(() => {
-    fetchStores();
-  }, []);
-
-  useEffect(() => {
-    fetchStores();
+    setPage(1);
+    setStores([]);
+    fetchStores(1);
   }, [filters.wilaya, filters.city, filters.is_bio_certified]);
 
-  const fetchStores = async () => {
-    setLoading(true);
+  const fetchStores = async (pageNum = 1, isLoadMore = false) => {
+    if (isLoadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
       const apiFilters = {
-        page_size: 50,
+        page: pageNum,
+        page_size: 12, // Reduced from 50 to 12 for faster loading
       };
 
       if (filters.search) apiFilters.search = filters.search;
@@ -58,18 +65,50 @@ export default function StoresPage({
       if (filters.is_bio_certified) apiFilters.is_bio_certified = true;
 
       const response = await producerService.getAllProducers(apiFilters);
-      setStores(response.producers || []);
+      const newStores = response.producers || [];
+
+      if (isLoadMore) {
+        setStores(prev => [...prev, ...newStores]);
+      } else {
+        setStores(newStores);
+      }
+
+      // Check if there are more stores to load
+      setHasMore(newStores.length === 12);
+      setRetryCount(0); // Reset retry count on success
     } catch (err) {
       console.error('Failed to fetch stores:', err);
-      setError('Failed to load stores. Please try again.');
+
+      // Auto-retry on timeout errors (up to 2 times)
+      if (err.code === 'ECONNABORTED' && retryCount < 2) {
+        console.log(`⚠️ Request timed out. Retrying... (${retryCount + 1}/2)`);
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => fetchStores(pageNum, isLoadMore), 2000); // Retry after 2 seconds
+        return;
+      }
+
+      const errorMessage = err.code === 'ECONNABORTED'
+        ? 'Server is taking too long to respond. The backend might be slow or down.'
+        : 'Failed to load stores. Please try again.';
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchStores(nextPage, true);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchStores();
+    setPage(1);
+    setStores([]);
+    fetchStores(1);
   };
 
   const handleWilayaChange = (wilaya) => {
@@ -234,14 +273,26 @@ export default function StoresPage({
           )}
 
           {error && (
-            <div className="text-center py-12">
-              <p className="text-red-600">{error}</p>
-              <button
-                onClick={fetchStores}
-                className="mt-4 px-6 py-2 bg-[#285153] text-white rounded-lg hover:bg-[#1f3f40]"
-              >
-                Try Again
-              </button>
+            <div className="text-center py-12 max-w-md mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <p className="text-red-600 mb-4">{error}</p>
+                {retryCount > 0 && (
+                  <p className="text-sm text-gray-600 mb-4">
+                    Automatically retried {retryCount} time{retryCount > 1 ? 's' : ''}
+                  </p>
+                )}
+                <button
+                  onClick={() => {
+                    setRetryCount(0);
+                    setPage(1);
+                    setStores([]);
+                    fetchStores(1);
+                  }}
+                  className="px-6 py-2 bg-[#285153] text-white rounded-lg hover:bg-[#1f3f40] transition"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           )}
 
@@ -314,6 +365,26 @@ export default function StoresPage({
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loading && !error && stores.length > 0 && hasMore && (
+            <div className="mt-12 text-center">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-8 py-3 bg-[#285153] text-white rounded-lg font-semibold hover:bg-[#1f3f40] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Loading...
+                  </span>
+                ) : (
+                  'Load More Stores'
+                )}
+              </button>
             </div>
           )}
         </div>
