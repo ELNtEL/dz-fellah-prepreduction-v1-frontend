@@ -81,18 +81,22 @@ export default function ProductsPage({
   const refetchRatings = useCallback(async () => {
     if (products.length === 0) return;
 
+    console.log('🔄 Refetching ratings for', products.length, 'products');
     const ratings = {};
     for (const product of products) {
       try {
         const rating = await ratingService.getProductRatings(product.id);
+        console.log(`✅ Refetched rating for product ${product.id}:`, rating);
         ratings[product.id] = {
           average_rating: rating?.average_rating || 0,
           total_ratings: rating?.total_ratings || 0
         };
       } catch (err) {
+        console.error(`❌ Error refetching rating for product ${product.id}:`, err);
         ratings[product.id] = { average_rating: 0, total_ratings: 0 };
       }
     }
+    console.log('✅ All refetched ratings before setState:', ratings);
     setProductRatings(ratings);
   }, [products]);
 
@@ -137,14 +141,18 @@ export default function ProductsPage({
       for (const product of fetchedProducts) {
         try {
           const rating = await ratingService.getProductRatings(product.id);
+          console.log(`✅ Fetched rating for product ${product.id}:`, rating);
           ratings[product.id] = {
             average_rating: rating?.average_rating || 0,
             total_ratings: rating?.total_ratings || 0
           };
+          console.log(`✅ Stored rating for product ${product.id}:`, ratings[product.id]);
         } catch (err) {
+          console.error(`❌ Error fetching rating for product ${product.id}:`, err);
           ratings[product.id] = { average_rating: 0, total_ratings: 0 };
         }
       }
+      console.log('✅ All ratings before setState:', ratings);
       setProductRatings(ratings);
     } catch (err) {
       console.error('Failed to fetch products:', err);
