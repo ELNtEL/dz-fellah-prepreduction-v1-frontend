@@ -1,10 +1,98 @@
 import { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
-import ProductCard from './ProductCard';
+import { FiX, FiTrash2 } from 'react-icons/fi';
 import basketService from '../../services/basketService';
 import productService from '../../services/productService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../../utils/imageUtils';
 import './css-weekly/BasketModal.css';
+
+// Simple product item for basket (no Edit button, just quantity and remove)
+const BasketProductItem = ({ product, quantity, onQuantityChange, onRemove }) => {
+    const imageUrl = getImageUrl(product.photo_url);
+    const categoryEmoji = getCategoryFallbackEmoji(product.product_type);
+
+    return (
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px',
+            backgroundColor: '#f9f9f9',
+            borderRadius: '8px',
+            marginBottom: '8px'
+        }}>
+            {/* Product Image */}
+            <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                flexShrink: 0
+            }}>
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={product.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                ) : (
+                    <div style={{
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: '#e8efef',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px'
+                    }}>
+                        {categoryEmoji}
+                    </div>
+                )}
+            </div>
+
+            {/* Product Info */}
+            <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: '600', fontSize: '14px', margin: 0 }}>{product.name}</p>
+                <p style={{ fontSize: '12px', color: '#666', margin: '2px 0 0 0' }}>
+                    {product.price} DA / {product.sale_type === 'weight' ? 'kg' : 'unit'}
+                </p>
+            </div>
+
+            {/* Quantity Input */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '12px', color: '#666' }}>Qty:</label>
+                <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => onQuantityChange(e.target.value)}
+                    min="1"
+                    style={{
+                        width: '60px',
+                        padding: '6px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '6px',
+                        fontSize: '14px'
+                    }}
+                />
+            </div>
+
+            {/* Remove Button */}
+            <button
+                type="button"
+                onClick={onRemove}
+                style={{
+                    background: '#fee2e2',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    cursor: 'pointer',
+                    color: '#dc2626'
+                }}
+            >
+                <FiTrash2 size={16} />
+            </button>
+        </div>
+    );
+};
 
 function BasketModal({ isOpen, onClose, basket, onSave }) {
     const isEditMode = !!basket;
@@ -110,6 +198,7 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                 description: formData.description,
                 discount_percentage: parseFloat(formData.discount_percentage) || 0,
                 original_price: parseFloat(formData.original_price) || calculateOriginalPrice(),
+                pickup_day: formData.pickup_day,
             };
 
             let savedBasket;
@@ -261,12 +350,12 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                                 <p className="no-products-msg">No products added yet</p>
                             ) : (
                                 formData.products.map(product => (
-                                    <ProductCard
+                                    <BasketProductItem
                                         key={product.id}
                                         product={product}
                                         quantity={product.quantity}
                                         onQuantityChange={(qty) => handleQuantityChange(product.id, qty)}
-                                        onDelete={() => handleRemoveProduct(product.id)}
+                                        onRemove={() => handleRemoveProduct(product.id)}
                                     />
                                 ))
                             )}
