@@ -16,7 +16,7 @@ const ProducerProductsPage = () => {
     const [toast, setToast] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
-    const categories = ['All', 'Fruits', 'Oils', 'Dairy', 'Vegetables', 'Honey'];
+    const categories = ['All', 'Vegetables', 'Fruits', 'Dairy', 'Oils', 'Honey', 'Grains', 'Meat', 'Other'];
 
     useEffect(() => {
         fetchMyProducts();
@@ -43,7 +43,7 @@ const ProducerProductsPage = () => {
 
     const filteredProducts = activeFilter === 'All'
         ? products
-        : products.filter(p => p.category === activeFilter);
+        : products.filter(p => p.product_type === activeFilter);
 
     const handleAddClick = () => {
         setEditingProduct(null);

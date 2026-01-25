@@ -46,8 +46,22 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
   useEffect(() => {
     const fetchRatings = async () => {
       if (!basket) return;
-      
+
       try {
+        // Fetch producer rating
+        if (basket.producer_id) {
+          try {
+            const producerRatingData = await ratingService.getProducerRating(basket.producer_id);
+            setProducerRating({
+              average_rating: producerRatingData?.average_rating || 0,
+              total_ratings: producerRatingData?.total_ratings || 0
+            });
+          } catch (err) {
+            console.error('Failed to fetch producer rating:', err);
+            setProducerRating({ average_rating: 0, total_ratings: 0 });
+          }
+        }
+
         // Fetch product ratings
         const ratings = {};
         for (const product of basket.products || []) {
