@@ -41,7 +41,7 @@ const ProductCard = ({ product, onEdit, onDelete }) => {
                 <button className="btn-edit" onClick={() => onEdit(product)}>
                     Edit
                 </button>
-                <button className="btn-delete" onClick={() => onDelete(product.id)}>
+                <button className="btn-delete" onClick={() => onDelete(product)}>
                     Delete
                 </button>
             </div>
