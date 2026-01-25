@@ -169,7 +169,8 @@ export default function App() {
   };
 
   const handleSecondaryComplete = () => {
-    navigate("/login");
+    // Navigate to landing page instead of login (user is already logged in after signup)
+    navigate("/");
   };
 
   return (
