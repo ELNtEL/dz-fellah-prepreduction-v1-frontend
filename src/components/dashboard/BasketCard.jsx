@@ -1,9 +1,9 @@
-import { Calendar } from 'lucide-react';
+import { Calendar, Package } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 import './css-weekly/BasketCard.css';
 
 function BasketCard({ basket, onEdit, onDelete }) {
-    const { id, name, discount_percentage, original_price, discounted_price, product_count, subscriber_count, producer_banner, pickup_day } = basket;
+    const { id, name, discount_percentage, original_price, discounted_price, product_count, subscriber_count, producer_banner, pickup_day, products } = basket;
 
     const bannerUrl = getImageUrl(producer_banner);
 
@@ -22,7 +22,7 @@ function BasketCard({ basket, onEdit, onDelete }) {
                 ) : (
                     <div className="basket-image basket-fallback"></div>
                 )}
-                
+
                 <div className="basket-emoji-overlay">
                     <span className="basket-emoji">🛒</span>
                 </div>
@@ -34,19 +34,73 @@ function BasketCard({ basket, onEdit, onDelete }) {
 
             <div className="basket-info">
                 <h3 className="basket-name">{name}</h3>
-                
+
                 <div className="basket-stats">
-                    <span className="basket-stat">📦 {product_count || 0} products</span>
+                    <span className="basket-stat">📦 {products?.length || product_count || 0} products</span>
                     <span className="basket-stat">👥 {subscriber_count || 0} subs</span>
                 </div>
 
-                {/* ✅ Pickup Day Display */}
+                {/* Products Preview */}
+                {products && products.length > 0 && (
+                    <div style={{
+                        marginTop: '12px',
+                        padding: '8px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '6px',
+                        fontSize: '11px'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginBottom: '8px',
+                            fontWeight: '600',
+                            color: '#333'
+                        }}>
+                            <Package style={{ width: '12px', height: '12px' }} />
+                            <span>Products:</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {products.slice(0, 3).map((product) => (
+                                <div key={product.id} style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    color: '#666',
+                                    paddingLeft: '4px'
+                                }}>
+                                    <span style={{ flex: 1 }}>• {product.name}</span>
+                                    <span style={{
+                                        fontWeight: '500',
+                                        color: '#2d5016',
+                                        fontSize: '10px'
+                                    }}>
+                                        {parseFloat(product.quantity).toFixed(1)}kg
+                                    </span>
+                                </div>
+                            ))}
+                            {products.length > 3 && (
+                                <span style={{
+                                    fontSize: '10px',
+                                    color: '#999',
+                                    marginTop: '4px',
+                                    paddingLeft: '4px',
+                                    fontStyle: 'italic'
+                                }}>
+                                    +{products.length - 3} more item{products.length - 3 > 1 ? 's' : ''}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Pickup Day Display */}
                 {pickup_day && (
-                    <div className="basket-pickup" style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '4px', 
-                        fontSize: '13px', 
+                    <div className="basket-pickup" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '13px',
                         color: '#666',
                         marginTop: '8px'
                     }}>
