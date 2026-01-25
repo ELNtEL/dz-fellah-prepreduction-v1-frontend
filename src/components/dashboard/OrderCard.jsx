@@ -293,6 +293,25 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                     )}
                 </div>
 
+                {/* Delivery/Pickup Info */}
+                {orderData.delivery_method && (
+                    <div style={{
+                        padding: '12px 20px',
+                        backgroundColor: '#e3f2fd',
+                        borderBottom: '1px solid #e0e0e0',
+                        fontSize: '13px'
+                    }}>
+                        <span style={{ fontWeight: '600', color: '#1565c0' }}>
+                            {orderData.delivery_method === 'pickup_producer' ? '🏠 Pickup at Farm' : '📍 Pickup Point'}:
+                        </span>
+                        <span style={{ marginLeft: '8px', color: '#333' }}>
+                            {orderData.delivery_method === 'pickup_producer'
+                                ? 'Collect your order directly from the producer'
+                                : orderData.delivery_address || 'Address not specified'}
+                        </span>
+                    </div>
+                )}
+
                 <div className="order-footer">
                     <span className="order-total-label">Total:</span>
                     <span className="order-total-amount">
