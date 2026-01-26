@@ -234,20 +234,29 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
 
             // Step 2: Handle products
             if (savedBasket && savedBasket.id) {
-                // Remove all existing products first (for edit mode)
+                const newProductIds = formData.products.map(p => p.id);
+                const oldProductIds = (basket?.products || []).map(p => p.product_id || p.id);
+
+                // Only remove products that are NOT in the new list
                 if (isEditMode && basket.products && basket.products.length > 0) {
-                    for (const product of basket.products) {
+                    const productsToRemove = basket.products.filter(p => {
+                        const productId = p.product_id || p.id;
+                        return !newProductIds.includes(productId);
+                    });
+
+                    for (const product of productsToRemove) {
                         try {
                             await basketService.removeProductFromBasket(savedBasket.id, product.product_id || product.id);
                         } catch (err) {
                             console.error('Error removing product:', err);
-                            // Continue even if removal fails
                         }
                     }
                 }
 
-                // Add all current products
-                for (const product of formData.products) {
+                // Only add products that are NOT already in the basket
+                const productsToAdd = formData.products.filter(p => !oldProductIds.includes(p.id));
+
+                for (const product of productsToAdd) {
                     try {
                         await basketService.addProductToBasket(
                             savedBasket.id,
@@ -256,7 +265,6 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                         );
                     } catch (err) {
                         console.error('Error adding product to basket:', err);
-                        // Continue adding other products
                     }
                 }
             }
@@ -474,10 +482,19 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                     <button
                         type="submit"
                         className="submit-btn"
-                        disabled={loading}
+                        disabled={loading || formData.products.length === 0}
+                        style={{
+                            opacity: formData.products.length === 0 ? 0.5 : 1,
+                            cursor: formData.products.length === 0 ? 'not-allowed' : 'pointer'
+                        }}
                     >
                         {loading ? 'Saving...' : (isEditMode ? 'UPDATE BASKET' : 'CREATE BASKET')}
                     </button>
+                    {formData.products.length === 0 && (
+                        <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '8px', textAlign: 'center' }}>
+                            Add at least 1 product to save the basket
+                        </p>
+                    )}
                 </form>
             </div>
         </div>
