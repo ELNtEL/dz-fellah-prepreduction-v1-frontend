@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Star, ShoppingBag, Package, Calendar, TrendingDown } from 'lucide-react';
 import ratingService from '../services/ratingService';
+import subscriptionService from '../services/subscriptionService';
 import authService from '../services/authService';
 import { getImageUrl, getCategoryFallbackEmoji } from '../utils/imageUtils';
 import basketpng from "../assets/basketpng.png";
@@ -38,12 +39,33 @@ const StarRating = ({ rating = 0, count = 0 }) => {
 function BasketDetailModal({ basket, onClose, onSubscribe }) {
   const [producerRating, setProducerRating] = useState({ average_rating: 0, total_ratings: 0 });
   const [productRatings, setProductRatings] = useState({});
+  const [isAlreadySubscribed, setIsAlreadySubscribed] = useState(false);
 
   // Check if current user is the producer of this basket
   const currentUser = authService.getCurrentUser();
   const currentUserId = currentUser?.id;
   const isProducer = currentUser?.user_type === 'producer';
   const isOwnBasket = currentUserId && basket?.producer_id === currentUserId;
+
+  // Check if user is already subscribed to this basket
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!basket || isProducer || !currentUser) return;
+
+      try {
+        const response = await subscriptionService.getMySubscriptions();
+        const subscriptions = response.subscriptions || [];
+        const isSubscribed = subscriptions.some(
+          sub => sub.basket_id === basket.id && (sub.status === 'active' || sub.status === 'paused')
+        );
+        setIsAlreadySubscribed(isSubscribed);
+      } catch (err) {
+        console.error('Failed to check subscription:', err);
+      }
+    };
+
+    checkSubscription();
+  }, [basket, isProducer, currentUser]);
 
   useEffect(() => {
     const fetchRatings = async () => {
@@ -323,8 +345,8 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
             )}
           </div>
 
-          {/* Subscribe Button - Hidden for producers */}
-          {!isOwnBasket && !isProducer ? (
+          {/* Subscribe Button - Hidden for producers and already subscribed */}
+          {!isOwnBasket && !isProducer && !isAlreadySubscribed ? (
             <div className="sticky bottom-0 bg-white pt-4 border-t">
               <button
                 onClick={() => onSubscribe && onSubscribe(basket)}
@@ -335,6 +357,14 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
               <p className="text-xs text-gray-500 text-center mt-2">
                 Cancel anytime - Flexible delivery - Fresh products weekly
               </p>
+            </div>
+          ) : isAlreadySubscribed ? (
+            <div className="sticky bottom-0 bg-white pt-4 border-t">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                <p className="text-green-700 text-center font-semibold">
+                  You are already subscribed to this basket
+                </p>
+              </div>
             </div>
           ) : isOwnBasket ? (
             <div className="sticky bottom-0 bg-white pt-4 border-t">

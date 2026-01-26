@@ -4,6 +4,7 @@ import { Search, X, Package, Calendar, Store } from "lucide-react";
 import BasketDetailModal from "./BasketDetailModal";
 import SubscriptionFormModal from "./SubscriptionFormModal";
 import basketService from "../services/basketService";
+import subscriptionService from "../services/subscriptionService";
 import authService from "../services/authService";
 import { useNavigate } from 'react-router-dom';
 import PublicNavBar from "./PublicNavBar";
@@ -36,10 +37,30 @@ export default function BrowseSubscriptionBasketsPage() {
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscribedBasketIds, setSubscribedBasketIds] = useState([]);
 
   useEffect(() => {
     fetchBaskets();
+    fetchMySubscriptions();
   }, []);
+
+  const fetchMySubscriptions = async () => {
+    // Only fetch if user is authenticated and is a client
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser || currentUser.user_type === 'producer') return;
+
+    try {
+      const response = await subscriptionService.getMySubscriptions();
+      const subscriptions = response.subscriptions || [];
+      // Get basket IDs that the client is already subscribed to (active or paused)
+      const activeSubscribedIds = subscriptions
+        .filter(sub => sub.status === 'active' || sub.status === 'paused')
+        .map(sub => sub.basket_id);
+      setSubscribedBasketIds(activeSubscribedIds);
+    } catch (err) {
+      console.error('Failed to fetch subscriptions:', err);
+    }
+  };
 
   const fetchBaskets = async () => {
     setLoading(true);
@@ -274,6 +295,7 @@ export default function BrowseSubscriptionBasketsPage() {
                 const currentUserId = currentUser?.id;
                 const isProducer = currentUser?.user_type === 'producer';
                 const isOwnBasket = currentUserId && basket.producer_id === currentUserId;
+                const isAlreadySubscribed = subscribedBasketIds.includes(basket.id);
 
                 return (
                   <motion.div
@@ -388,11 +410,11 @@ export default function BrowseSubscriptionBasketsPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewDetails(basket.id)}
-                          className={`${isOwnBasket || isProducer ? 'w-full' : 'flex-1'} py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition`}
+                          className={`${isOwnBasket || isProducer || isAlreadySubscribed ? 'w-full' : 'flex-1'} py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition`}
                         >
                           View Details
                         </button>
-                        {!isOwnBasket && !isProducer && (
+                        {!isOwnBasket && !isProducer && !isAlreadySubscribed && (
                           <button
                             onClick={() => handleSubscribeClick(basket)}
                             className="flex-1 py-2 bg-[#285153] text-white rounded-lg font-semibold text-sm hover:bg-[#1f3f40] transition"
@@ -409,6 +431,11 @@ export default function BrowseSubscriptionBasketsPage() {
                       {isProducer && !isOwnBasket && (
                         <p className="text-xs text-gray-500 text-center mt-2 font-medium">
                           Producers cannot subscribe to baskets
+                        </p>
+                      )}
+                      {isAlreadySubscribed && !isProducer && (
+                        <p className="text-xs text-green-600 text-center mt-2 font-medium">
+                          You are already subscribed to this basket
                         </p>
                       )}
                     </div>
