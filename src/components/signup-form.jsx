@@ -99,7 +99,7 @@ export default function SignupForm({
         return;
       }
     } else {
-      if (!formData.shopName || !formData.email) {
+      if (!formData.firstName || !formData.lastName || !formData.shopName || !formData.email) {
         setError("Please fill in all required fields");
         return;
       }
@@ -246,18 +246,46 @@ export default function SignupForm({
             </div>
           </div>
         ) : (
-          <div className="relative">
-            <User className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
-            <input
-              type="text"
-              name="shopName"
-              placeholder="Shop/Farm Name *"
-              value={formData.shopName}
-              onChange={handleChange}
-              required
-              className="w-full pl-14 pr-6 py-4 bg-[#E0E0E0] text-gray-900 placeholder-gray-500 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-[#285153]"
-            />
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name *"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-[#E0E0E0] text-gray-900 placeholder-gray-500 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-[#285153]"
+                />
+              </div>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name *"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-[#E0E0E0] text-gray-900 placeholder-gray-500 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-[#285153]"
+                />
+              </div>
+            </div>
+            <div className="relative">
+              <User className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
+              <input
+                type="text"
+                name="shopName"
+                placeholder="Farm Name *"
+                value={formData.shopName}
+                onChange={handleChange}
+                required
+                className="w-full pl-14 pr-6 py-4 bg-[#E0E0E0] text-gray-900 placeholder-gray-500 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-[#285153]"
+              />
+            </div>
+          </>
         )}
 
         <div className="relative">
