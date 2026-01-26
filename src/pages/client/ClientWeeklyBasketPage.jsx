@@ -112,7 +112,10 @@ function ClientWeeklyBasketPage() {
 
             {cancellingSubscription && (
                 <DeleteConfirmationModal
-                    productName={`${cancellingSubscription.basket_name} subscription`}
+                    productName={cancellingSubscription.basket_name}
+                    title="Cancel subscription?"
+                    confirmText="Yes, Cancel"
+                    message={<>Are you sure you want to cancel your subscription to <strong>{cancellingSubscription.basket_name}</strong>? You can resubscribe at any time.</>}
                     onConfirm={confirmCancel}
                     onCancel={() => setCancellingSubscription(null)}
                 />

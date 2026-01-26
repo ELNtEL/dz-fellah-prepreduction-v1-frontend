@@ -1,6 +1,6 @@
 import React from 'react';
 
-const DeleteConfirmationModal = ({ productName, onConfirm, onCancel }) => {
+const DeleteConfirmationModal = ({ productName, onConfirm, onCancel, title = 'Delete product?', confirmText = 'Delete', message = null }) => {
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
             onCancel();
@@ -71,7 +71,7 @@ const DeleteConfirmationModal = ({ productName, onConfirm, onCancel }) => {
                             color: '#1f2937',
                             margin: 0
                         }}>
-                            Delete product?
+                            {title}
                         </h3>
                     </div>
                 </div>
@@ -83,7 +83,7 @@ const DeleteConfirmationModal = ({ productName, onConfirm, onCancel }) => {
                     marginBottom: '20px',
                     lineHeight: '1.5'
                 }}>
-                    <strong>{productName}</strong> will be permanently removed from your products.
+                    {message || <><strong>{productName}</strong> will be permanently removed.</>}
                 </p>
 
                 {/* Buttons */}
@@ -132,7 +132,7 @@ const DeleteConfirmationModal = ({ productName, onConfirm, onCancel }) => {
                         onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
                         onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
                     >
-                        Delete
+                        {confirmText}
                     </button>
                 </div>
             </div>

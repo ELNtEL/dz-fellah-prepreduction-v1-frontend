@@ -270,7 +270,9 @@ export default function BrowseSubscriptionBasketsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {baskets.map((basket) => {
                 const bannerUrl = getImageUrl(basket.producer_banner);
-                const currentUserId = authService.getCurrentUserId();
+                const currentUser = authService.getCurrentUser();
+                const currentUserId = currentUser?.id;
+                const isProducer = currentUser?.user_type === 'producer';
                 const isOwnBasket = currentUserId && basket.producer_id === currentUserId;
 
                 return (
@@ -386,11 +388,11 @@ export default function BrowseSubscriptionBasketsPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewDetails(basket.id)}
-                          className={`${isOwnBasket ? 'w-full' : 'flex-1'} py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition`}
+                          className={`${isOwnBasket || isProducer ? 'w-full' : 'flex-1'} py-2 border border-[#285153] text-[#285153] rounded-lg font-semibold text-sm hover:bg-[#285153] hover:text-white transition`}
                         >
                           View Details
                         </button>
-                        {!isOwnBasket && (
+                        {!isOwnBasket && !isProducer && (
                           <button
                             onClick={() => handleSubscribeClick(basket)}
                             className="flex-1 py-2 bg-[#285153] text-white rounded-lg font-semibold text-sm hover:bg-[#1f3f40] transition"
@@ -402,6 +404,11 @@ export default function BrowseSubscriptionBasketsPage() {
                       {isOwnBasket && (
                         <p className="text-xs text-amber-700 text-center mt-2 font-medium">
                           📦 Your basket
+                        </p>
+                      )}
+                      {isProducer && !isOwnBasket && (
+                        <p className="text-xs text-gray-500 text-center mt-2 font-medium">
+                          Producers cannot subscribe to baskets
                         </p>
                       )}
                     </div>

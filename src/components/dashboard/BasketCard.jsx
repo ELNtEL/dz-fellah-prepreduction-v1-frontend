@@ -72,11 +72,14 @@ function BasketCard({ basket, onEdit, onDelete }) {
                                 }}>
                                     <span style={{ flex: 1 }}>• {product.name}</span>
                                     <span style={{
-                                        fontWeight: '500',
-                                        color: '#2d5016',
-                                        fontSize: '10px'
+                                        fontWeight: '600',
+                                        color: '#285153',
+                                        fontSize: '10px',
+                                        backgroundColor: '#e8f5e9',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px'
                                     }}>
-                                        {parseFloat(product.quantity).toFixed(1)}kg
+                                        x{product.quantity || 1} {product.sale_type === 'weight' ? 'kg' : (product.quantity > 1 ? 'units' : 'unit')}
                                     </span>
                                 </div>
                             ))}

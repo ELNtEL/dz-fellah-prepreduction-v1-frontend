@@ -102,7 +102,7 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {products.slice(0, 3).map((product) => (
-                                <div key={product.id} style={{ 
+                                <div key={product.id} style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
@@ -110,12 +110,15 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                                     paddingLeft: '4px'
                                 }}>
                                     <span style={{ flex: 1 }}>• {product.name}</span>
-                                    <span style={{ 
-                                        fontWeight: '500',
-                                        color: '#2d5016',
-                                        fontSize: '10px'
+                                    <span style={{
+                                        fontWeight: '600',
+                                        color: '#285153',
+                                        fontSize: '10px',
+                                        backgroundColor: '#e8f5e9',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px'
                                     }}>
-                                        {parseFloat(product.quantity).toFixed(1)}kg
+                                        x{product.quantity || 1} {product.sale_type === 'weight' ? 'kg' : (product.quantity > 1 ? 'units' : 'unit')}
                                     </span>
                                 </div>
                             ))}

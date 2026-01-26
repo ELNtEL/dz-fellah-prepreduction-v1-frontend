@@ -40,7 +40,9 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
   const [productRatings, setProductRatings] = useState({});
 
   // Check if current user is the producer of this basket
-  const currentUserId = authService.getCurrentUserId();
+  const currentUser = authService.getCurrentUser();
+  const currentUserId = currentUser?.id;
+  const isProducer = currentUser?.user_type === 'producer';
   const isOwnBasket = currentUserId && basket?.producer_id === currentUserId;
 
   useEffect(() => {
@@ -291,20 +293,27 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
                       
                       {/* Product Info */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 text-sm truncate">{product.name}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-800 text-sm truncate">{product.name}</h4>
+                          {product.quantity > 1 && (
+                            <span className="bg-[#285153] text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                              x{product.quantity}
+                            </span>
+                          )}
+                        </div>
                         <StarRating rating={rating.average_rating} count={rating.total_ratings} />
                         <p className="text-xs text-gray-600">
-                          {product.quantity} {product.sale_type === 'weight' ? 'kg' : 'unit'}
+                          {product.quantity} {product.sale_type === 'weight' ? 'kg' : (product.quantity > 1 ? 'units' : 'unit')}
                         </p>
                       </div>
-                      
+
                       {/* Product Price */}
                       <div className="text-right">
                         <p className="font-bold text-[#285153] text-sm">
-                          {parseFloat(product.price).toFixed(2)} DA
+                          {(parseFloat(product.price) * (product.quantity || 1)).toFixed(2)} DA
                         </p>
                         <p className="text-xs text-gray-500">
-                          /{product.sale_type === 'weight' ? 'kg' : 'unit'}
+                          {product.price} DA/{product.sale_type === 'weight' ? 'kg' : 'unit'}
                         </p>
                       </div>
                     </div>
@@ -314,8 +323,8 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
             )}
           </div>
 
-          {/* Subscribe Button - Hidden for producers viewing their own baskets */}
-          {!isOwnBasket ? (
+          {/* Subscribe Button - Hidden for producers */}
+          {!isOwnBasket && !isProducer ? (
             <div className="sticky bottom-0 bg-white pt-4 border-t">
               <button
                 onClick={() => onSubscribe && onSubscribe(basket)}
@@ -324,14 +333,22 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
                 Subscribe to this Basket
               </button>
               <p className="text-xs text-gray-500 text-center mt-2">
-                🔄 Cancel anytime •  Flexible delivery • ✨ Fresh products weekly
+                Cancel anytime - Flexible delivery - Fresh products weekly
               </p>
             </div>
-          ) : (
+          ) : isOwnBasket ? (
             <div className="sticky bottom-0 bg-white pt-4 border-t">
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <p className="text-amber-800 text-center font-semibold">
-                  📦 This is your basket. You cannot subscribe to your own baskets.
+                  This is your basket. You cannot subscribe to your own baskets.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="sticky bottom-0 bg-white pt-4 border-t">
+              <div className="p-4 bg-gray-100 border border-gray-200 rounded-xl">
+                <p className="text-gray-600 text-center font-semibold">
+                  Producers cannot subscribe to baskets
                 </p>
               </div>
             </div>
