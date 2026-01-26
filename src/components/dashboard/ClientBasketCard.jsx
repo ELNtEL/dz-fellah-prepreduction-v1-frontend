@@ -2,11 +2,12 @@ import { FiCheck } from 'react-icons/fi';
 import { Calendar, MapPin, Package } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 import authService from '../../services/authService';
+import basketpng from '../../assets/basketpng.png';
 import './css-weekly/ClientBasketCard.css';
 
 function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetails }) {
 
-    // ✅ FIX: Use basket data directly (already restructured in parent)
+    // Use basket data directly (already restructured in parent)
     const {
         id,
         name,
@@ -18,7 +19,7 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
         discounted_price,
         product_count,
         pickup_day,
-        products  // ✅ ADD THIS
+        products
     } = basket;
 
     const bannerUrl = getImageUrl(producer_banner);
@@ -43,9 +44,9 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                 ) : (
                     <div className="basket-fallback"></div>
                 )}
-                
+
                 <div className="basket-emoji-overlay">
-                    <span className="basket-emoji">🧺</span>
+                    <img src={basketpng} alt="basket" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 {/* Discount Badge */}

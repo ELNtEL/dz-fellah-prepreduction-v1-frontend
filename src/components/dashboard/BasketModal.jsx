@@ -102,13 +102,14 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
         description: '',
         products: [],
         original_price: '',
-        discount_percentage: '',
-         pickup_day: 'Saturday'
+        discount_percentage: '0',
+        pickup_day: 'Saturday'
     });
 
     const [availableProducts, setAvailableProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showProductSelector, setShowProductSelector] = useState(false);
+    const [error, setError] = useState('');
 
     // Load producer's products
     useEffect(() => {
@@ -134,7 +135,7 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                 description: basket.description || '',
                 products: basket.products || [],
                 original_price: basket.original_price || '',
-                discount_percentage: basket.discount_percentage || '',
+                discount_percentage: basket.discount_percentage ?? '0',
                 pickup_day: basket.pickup_day || 'Saturday'
             });
         } else {
@@ -143,10 +144,11 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                 description: '',
                 products: [],
                 original_price: '',
-                discount_percentage: '',
+                discount_percentage: '0',
                 pickup_day: 'Saturday'
             });
         }
+        setError('');
     }, [basket, isOpen]);
 
     const handleInputChange = (e) => {
@@ -189,6 +191,20 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+
+        // Validation: Must have at least 1 product
+        if (formData.products.length === 0) {
+            setError('A basket must have at least 1 product');
+            return;
+        }
+
+        // Validation: Must have a name
+        if (!formData.name.trim()) {
+            setError('Please enter a basket name');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -201,24 +217,31 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                 pickup_day: formData.pickup_day,
             };
 
+            console.log('Saving basket with data:', basketData);
+
             let savedBasket;
             if (isEditMode) {
                 const response = await basketService.updateBasket(basket.id, basketData);
+                console.log('Update response:', response);
                 savedBasket = response.basket || response;
             } else {
                 const response = await basketService.createBasket(basketData);
+                console.log('Create response:', response);
                 savedBasket = response.basket || response;
             }
 
-            // Step 2: Add products to the basket (if any)
-            if (savedBasket && savedBasket.id && formData.products.length > 0) {
+            console.log('Saved basket:', savedBasket);
+
+            // Step 2: Handle products
+            if (savedBasket && savedBasket.id) {
                 // Remove all existing products first (for edit mode)
-                if (isEditMode && basket.products) {
+                if (isEditMode && basket.products && basket.products.length > 0) {
                     for (const product of basket.products) {
                         try {
                             await basketService.removeProductFromBasket(savedBasket.id, product.product_id || product.id);
                         } catch (err) {
                             console.error('Error removing product:', err);
+                            // Continue even if removal fails
                         }
                     }
                 }
@@ -233,18 +256,20 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                         );
                     } catch (err) {
                         console.error('Error adding product to basket:', err);
-                        throw err; // Re-throw to catch in outer try-catch
+                        // Continue adding other products
                     }
                 }
             }
 
             // Step 3: Close modal and trigger refresh
             onClose();
-            await onSave(); // Just refresh, don't pass basketData
-            
+            if (onSave) {
+                await onSave();
+            }
+
         } catch (error) {
             console.error('Error saving basket:', error);
-            throw error; // Let parent handle the toast
+            setError(error.message || 'Failed to save basket. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -268,6 +293,21 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
 
                 <form onSubmit={handleSubmit} className="basket-form">
                     <h2 className="modal-title">{isEditMode ? 'Edit Basket' : 'Create New Basket'}</h2>
+
+                    {/* Error Message */}
+                    {error && (
+                        <div style={{
+                            padding: '12px 16px',
+                            backgroundColor: '#fee2e2',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '8px',
+                            color: '#dc2626',
+                            marginBottom: '16px',
+                            fontSize: '14px'
+                        }}>
+                            {error}
+                        </div>
+                    )}
 
                     {/* Basket Name */}
                     <div className="form-group">
@@ -434,7 +474,7 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                     <button
                         type="submit"
                         className="submit-btn"
-                        disabled={loading || !formData.name || !formData.discount_percentage}
+                        disabled={loading}
                     >
                         {loading ? 'Saving...' : (isEditMode ? 'UPDATE BASKET' : 'CREATE BASKET')}
                     </button>

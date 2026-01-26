@@ -1,5 +1,6 @@
 import { Calendar, Package } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
+import basketpng from '../../assets/basketpng.png';
 import './css-weekly/BasketCard.css';
 
 function BasketCard({ basket, onEdit, onDelete }) {
@@ -24,7 +25,7 @@ function BasketCard({ basket, onEdit, onDelete }) {
                 )}
 
                 <div className="basket-emoji-overlay">
-                    <span className="basket-emoji">🛒</span>
+                    <img src={basketpng} alt="basket" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 {discount_percentage > 0 && (
