@@ -5,27 +5,19 @@ import { getImageUrl } from '../../utils/imageUtils';
 const Header = ({ user, onNotificationClick }) => {
     const navigate = useNavigate();
 
-    const getDisplayName = () => {
-        if (user.name) return user.name;
-        if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`;
-        if (user.producer_profile?.shop_name) return user.producer_profile.shop_name;
-        return 'User';
-    };
-
-    const getFirstName = () => {
-        const fullName = getDisplayName();
-        return fullName.split(' ')[0];
-    };
-
+    // For producers, the display name is the farm/shop name
     const getFarmName = () => {
-        if (user.farmName) return user.farmName;
         if (user.producer_profile?.shop_name) return user.producer_profile.shop_name;
-        return 'your farm';
+        if (user.farmName) return user.farmName;
+        return 'Your Farm';
     };
 
-    const displayName = getDisplayName();
-    const firstName = getFirstName();
     const farmName = getFarmName();
+
+    // Get first letter for avatar fallback
+    const getAvatarLetter = () => {
+        return farmName.charAt(0).toUpperCase();
+    };
     
     // Build full URLs for images
     const avatarUrl = getImageUrl(user?.avatar || user?.producer_profile?.avatar);
@@ -40,7 +32,7 @@ const Header = ({ user, onNotificationClick }) => {
                     className="header-banner"
                 />
             ) : (
-                <div className="header-banner" style={{ 
+                <div className="header-banner" style={{
                     backgroundColor: '#285153',
                     height: '200px'
                 }}></div>
@@ -50,7 +42,7 @@ const Header = ({ user, onNotificationClick }) => {
                 {avatarUrl ? (
                     <img
                         src={avatarUrl}
-                        alt={displayName}
+                        alt={farmName}
                         className="header-avatar"
                     />
                 ) : (
@@ -63,12 +55,12 @@ const Header = ({ user, onNotificationClick }) => {
                         fontSize: '24px',
                         fontWeight: 'bold'
                     }}>
-                        {firstName.charAt(0).toUpperCase()}
+                        {getAvatarLetter()}
                     </div>
                 )}
 
                 <div className="header-info">
-                    <h1 className="header-name">{displayName}</h1>
+                    <h1 className="header-name">{farmName}</h1>
                     <p className="header-email">{user.email}</p>
                 </div>
 
@@ -89,8 +81,8 @@ const Header = ({ user, onNotificationClick }) => {
             </div>
 
             <div className="welcome-message">
-                <h2>Welcome back, {firstName}!</h2>
-                <p>We're glad to see {farmName} thriving on your dashboard. Check your products, orders, and inventory to stay up to date with your farm.</p>
+                <h2>Welcome to {farmName}!</h2>
+                <p>Manage your products, orders, and inventory all in one place. Keep your farm running smoothly.</p>
             </div>
         </header>
     );
