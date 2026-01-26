@@ -20,10 +20,11 @@ export default function LoginForm({ onSignupClick }) {
     setError("");
 
     try {
-      // Call backend API
+      // Call backend API with user type for validation
       const response = await authService.login({
         email: email,
         password: password,
+        user_type: userType === "consumer" ? "client" : "producer",
       });
 
       // Login successful - redirect based on user type
