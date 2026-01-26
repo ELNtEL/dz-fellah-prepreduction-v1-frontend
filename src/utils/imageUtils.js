@@ -32,5 +32,5 @@ export const getCategoryFallbackEmoji = (category) => {
     'Other': '📦'
   };
 
-  return fallbacks[category] || '📦';
+  return fallbacks[category] || '🛒';
 };

@@ -90,7 +90,7 @@ const handleImageUpload = (file) => {
         
         // Convert to base64 with compression (0.7 quality)
         const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-        console.log('✅ Product image compressed, length:', compressedBase64.length);
+        console.log(' Product image compressed, length:', compressedBase64.length);
         
         setFormData(prev => ({ ...prev, photo_url: compressedBase64 }));
     };

@@ -165,7 +165,7 @@ function BasketDetailModal({ basket, onClose, onSubscribe }) {
                 <Calendar className="w-4 h-4" />
                 {basket.delivery_frequency === 'weekly' ? 'Weekly' : basket.delivery_frequency === 'biweekly' ? 'Bi-weekly' : 'Monthly'}
               </span>
-              {/* ✅ Pickup Day Badge */}
+              {/*  Pickup Day Badge */}
               {basket.pickup_day && (
                 <span className="flex items-center gap-1 bg-green-500/80 backdrop-blur-sm px-3 py-1 rounded-full font-semibold">
                   <Calendar className="w-4 h-4" />

@@ -403,7 +403,7 @@ export default function BrowseSubscriptionBasketsPage() {
                       </div>
                       {isOwnBasket && (
                         <p className="text-xs text-amber-700 text-center mt-2 font-medium">
-                          📦 Your basket
+                           Your basket
                         </p>
                       )}
                       {isProducer && !isOwnBasket && (

@@ -76,11 +76,11 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                 {/* Stats */}
                 <div className="basket-stats">
                     <span className="basket-stat">
-                        📦 {products?.length || product_count || 0} items
+                         {products?.length || product_count || 0} items
                     </span>
                 </div>
 
-                {/* ✅ NEW: Products Preview */}
+                {/*  NEW: Products Preview */}
                 {products && products.length > 0 && (
                     <div className="basket-products-preview" style={{
                         marginTop: '12px',
@@ -248,7 +248,7 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                                 color: '#92400e',
                                 fontWeight: '600'
                             }}>
-                                📦 Your basket
+                                 Your basket
                             </div>
                         )}
                     </>

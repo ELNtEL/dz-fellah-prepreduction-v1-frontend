@@ -37,8 +37,8 @@ function BasketCard({ basket, onEdit, onDelete }) {
                 <h3 className="basket-name">{name}</h3>
 
                 <div className="basket-stats">
-                    <span className="basket-stat">📦 {products?.length || product_count || 0} products</span>
-                    <span className="basket-stat">👥 {subscriber_count || 0} subs</span>
+                    <span className="basket-stat"> {products?.length || product_count || 0} products</span>
+                    <span className="basket-stat"> {subscriber_count || 0} subs</span>
                 </div>
 
                 {/* Products Preview */}

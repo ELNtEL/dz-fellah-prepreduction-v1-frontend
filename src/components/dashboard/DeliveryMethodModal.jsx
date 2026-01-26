@@ -115,7 +115,7 @@ const DeliveryMethodModal = ({ onConfirm, onCancel }) => {
     });
 };
 
-// ✅ ADD THIS - Check if Continue should be disabled
+//  ADD THIS - Check if Continue should be disabled
 const isContinueDisabled = () => {
     if (deliveryMethod === 'pickup_producer') {
         return false; // Always allow pickup from producer
@@ -210,7 +210,7 @@ const isContinueDisabled = () => {
                             style={{ marginRight: '12px' }}
                         />
                         <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                            🏪 Pickup at Producer
+                             Pickup at Producer
                         </span>
                         <p style={{ 
                             fontSize: '13px', 
@@ -243,7 +243,7 @@ const isContinueDisabled = () => {
                             style={{ marginRight: '12px' }}
                         />
                         <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                            📦 Pickup at Collection Point
+                             Pickup at Collection Point
                         </span>
                         <p style={{ 
                             fontSize: '13px', 
