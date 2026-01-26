@@ -3,7 +3,7 @@ import orderService from '../../services/orderService';
 import ratingService from '../../services/ratingService';
 import Toast from '../Toast';
 
-const OrderCard = ({ order, onRateProduct, showRating = false }) => {
+const OrderCard = ({ order, onRateProduct, showRating = false, onDelete = null, showDeleteButton = false }) => {
     const [fullOrder, setFullOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [productRatings, setProductRatings] = useState({});
@@ -17,8 +17,9 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
         try {
             const details = await orderService.getOrderById(order.id);
             setFullOrder(details.order || details);
-            
-            if (showRating && (details.order?.status === 'completed' || details.status === 'completed')) {
+
+            // Load ratings for completed sub-orders only
+            if (showRating) {
                 await loadProductRatings(details.order || details);
             }
         } catch (err) {
@@ -31,20 +32,23 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
     const loadProductRatings = async (orderData) => {
         const subOrders = orderData.sub_orders || [];
         const ratings = {};
-        
+
         for (const subOrder of subOrders) {
-            const items = subOrder.items || [];
-            for (const item of items) {
-                const productId = item.product_id || item.id;
-                try {
-                    const myRating = await ratingService.getMyRating(productId);
-                    ratings[productId] = myRating.rating || 0;
-                } catch (err) {
-                    ratings[productId] = 0;
+            // Only load ratings for completed sub-orders
+            if (subOrder.status === 'completed') {
+                const items = subOrder.items || [];
+                for (const item of items) {
+                    const productId = item.product_id || item.id;
+                    try {
+                        const myRating = await ratingService.getMyRating(productId);
+                        ratings[productId] = myRating.rating || 0;
+                    } catch (err) {
+                        ratings[productId] = 0;
+                    }
                 }
             }
         }
-        
+
         setProductRatings(ratings);
     };
 
@@ -73,45 +77,51 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
         }
     };
 
-    const getStatusIcon = (status) => {
+    const getStatusLabel = (status) => {
         switch (status) {
-            case 'completed':
-            case 'delivered':
-                return (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <polyline points="20,6 9,17 4,12" />
-                    </svg>
-                );
-            case 'ready':
-            case 'shipped':
-                return (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <rect x="1" y="3" width="15" height="13" />
-                        <polygon points="16,8 20,8 23,11 23,16 16,16 16,8" />
-                        <circle cx="5.5" cy="18.5" r="2.5" />
-                        <circle cx="18.5" cy="18.5" r="2.5" />
-                    </svg>
-                );
-            case 'pending':
-                return (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12,6 12,12 16,14" />
-                    </svg>
-                );
-            default:
-                return null;
+            case 'completed': return 'Completed';
+            case 'ready': return 'Ready for Pickup';
+            case 'preparing': return 'Preparing';
+            case 'confirmed': return 'Confirmed';
+            case 'pending': return 'Pending';
+            case 'cancelled': return 'Cancelled';
+            default: return status;
         }
     };
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
             day: 'numeric'
         });
+    };
+
+    // Calculate overall order status based on sub-orders
+    const getOverallStatus = (subOrders) => {
+        if (!subOrders || subOrders.length === 0) return 'pending';
+
+        const statuses = subOrders.map(so => so.status);
+
+        // If all cancelled, overall is cancelled
+        if (statuses.every(s => s === 'cancelled')) return 'cancelled';
+
+        // If all completed, overall is completed
+        if (statuses.every(s => s === 'completed' || s === 'cancelled')) return 'completed';
+
+        // If any is ready (and none pending/preparing), overall is ready
+        const nonCancelledStatuses = statuses.filter(s => s !== 'cancelled');
+        if (nonCancelledStatuses.every(s => s === 'ready' || s === 'completed')) return 'ready';
+
+        // If any is preparing, overall is preparing
+        if (nonCancelledStatuses.some(s => s === 'preparing')) return 'preparing';
+
+        // If any is confirmed, overall is confirmed
+        if (nonCancelledStatuses.some(s => s === 'confirmed')) return 'confirmed';
+
+        return 'pending';
     };
 
     if (loading) {
@@ -126,35 +136,7 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
 
     const orderData = fullOrder || order;
     const subOrders = orderData.sub_orders || [];
-    
-    const allItems = [];
-    const producerContacts = {}; // ✅ Track producer contact info
-    
-    subOrders.forEach(subOrder => {
-        const producerDetails = subOrder.producer_details || {};
-        const producerName = producerDetails.shop_name || 'Unknown Producer';
-        
-        // ✅ Store producer contact info
-        if (!producerContacts[producerName]) {
-            producerContacts[producerName] = {
-                phone: producerDetails.phone,
-                address: producerDetails.address,
-                city: producerDetails.city,
-                wilaya: producerDetails.wilaya
-            };
-        }
-        
-        const items = subOrder.items || [];
-        items.forEach(item => {
-            allItems.push({
-                ...item,
-                producerName: producerName,
-                product_id: item.product_id || item.id
-            });
-        });
-    });
-
-    const canRate = showRating && orderData.status === 'completed';
+    const overallStatus = subOrders.length > 0 ? getOverallStatus(subOrders) : orderData.status;
 
     return (
         <>
@@ -166,7 +148,48 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                 />
             )}
 
-            <div className="order-card">
+            <div className="order-card" style={{ position: 'relative' }}>
+                {/* Delete Button */}
+                {showDeleteButton && onDelete && (
+                    <button
+                        onClick={() => onDelete(orderData.id)}
+                        style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: '#fee2e2',
+                            color: '#dc2626',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            transition: 'all 0.2s',
+                            zIndex: 10
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                            e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#fee2e2';
+                            e.currentTarget.style.color = '#dc2626';
+                        }}
+                        title="Remove from history"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                )}
+
+                {/* Order Header */}
                 <div className="order-header">
                     <div className="order-info">
                         <h4 className="order-id">Order #{orderData.order_number || orderData.id}</h4>
@@ -174,115 +197,179 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                     </div>
                     <div
                         className="order-status"
-                        style={{ backgroundColor: getStatusColor(orderData.status) }}
+                        style={{ backgroundColor: getStatusColor(overallStatus) }}
                     >
-                        {getStatusIcon(orderData.status)}
-                        <span>{orderData.status}</span>
+                        <span>{getStatusLabel(overallStatus)}</span>
                     </div>
                 </div>
 
-                {/* ✅ Producer Contact Info Section */}
-                {Object.keys(producerContacts).length > 0 && (
-                    <div style={{
-                        padding: '15px 20px',
-                        backgroundColor: '#f9f9f9',
-                        borderBottom: '1px solid #e0e0e0'
-                    }}>
-                        <h5 style={{ fontSize: '13px', fontWeight: '600', color: '#285153', marginBottom: '8px' }}>
-                            Producer Contact{Object.keys(producerContacts).length > 1 ? 's' : ''}:
-                        </h5>
-                        {Object.entries(producerContacts).map(([name, contact]) => (
-                            <div key={name} style={{ marginBottom: '6px', fontSize: '12px', color: '#666' }}>
-                                <span style={{ fontWeight: '600', color: '#333' }}>{name}</span>
-                                {contact.phone && <span style={{ marginLeft: '10px' }}>📞 {contact.phone}</span>}
-                                {contact.city && contact.wilaya && (
-                                    <span style={{ marginLeft: '10px' }}>📍 {contact.city}, {contact.wilaya}</span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {/* Sub-Orders - Each producer group with their status */}
+                {subOrders.length > 0 ? (
+                    <div className="order-items" style={{ padding: 0 }}>
+                        {subOrders.map((subOrder, subIndex) => {
+                            const producerDetails = subOrder.producer_details || {};
+                            const producerName = producerDetails.shop_name || 'Unknown Producer';
+                            const items = subOrder.items || [];
+                            const canRateSubOrder = showRating && subOrder.status === 'completed';
 
-                <div className="order-items">
-                    {allItems.length > 0 ? (
-                        allItems.map((item, index) => (
-                            <div key={item.id || index}>
-                                <div className="order-item">
-                                    {item.product_photo && (
-                                        <img
-                                            src={item.product_photo}
-                                            alt={item.product_name}
-                                            className="order-item-image"
-                                        />
-                                    )}
-                                    <div className="order-item-info">
-                                        <span className="order-item-name">
-                                            {item.product_name}
-                                            <span style={{ 
-                                                fontSize: '11px', 
-                                                color: '#888', 
-                                                marginLeft: '8px',
-                                                fontWeight: 'normal'
-                                            }}>
-                                                from {item.producerName}
-                                            </span>
-                                        </span>
-                                        <span className="order-item-qty">
-                                            x{item.quantity_ordered || item.quantity} {item.sale_type === 'weight' ? 'kg' : ''}
-                                        </span>
-                                    </div>
-                                    <span className="order-item-price">
-                                        {(item.subtotal || 0).toLocaleString()} DA
-                                    </span>
-                                </div>
-
-                                {canRate && (
+                            return (
+                                <div key={subOrder.id || subIndex} style={{ borderBottom: subIndex < subOrders.length - 1 ? '2px solid #e0e0e0' : 'none' }}>
+                                    {/* Producer Header with Status */}
                                     <div style={{
-                                        padding: '8px 20px 12px 20px',
                                         display: 'flex',
+                                        justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        gap: '10px',
-                                        borderBottom: index < allItems.length - 1 ? '1px solid #f0f0f0' : 'none'
+                                        padding: '12px 20px',
+                                        backgroundColor: '#f8f9fa',
+                                        borderBottom: '1px solid #e0e0e0'
                                     }}>
-                                        <span style={{ fontSize: '13px', color: '#666' }}>Rate:</span>
-                                        <div style={{ display: 'flex', gap: '4px' }}>
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <button
-                                                    key={star}
-                                                    onClick={() => handleRateProduct(item.product_id, star)}
-                                                    style={{
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        padding: 0,
-                                                        transition: 'transform 0.2s'
-                                                    }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                                >
-                                                    <svg 
-                                                        viewBox="0 0 24 24" 
-                                                        fill={star <= (productRatings[item.product_id] || 0) ? '#FFB800' : 'none'} 
-                                                        stroke="#FFB800" 
-                                                        strokeWidth="2" 
-                                                        width="20" 
-                                                        height="20"
-                                                    >
-                                                        <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5" />
-                                                    </svg>
-                                                </button>
-                                            ))}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#285153',
+                                                color: 'white',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {producerName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <span style={{ fontWeight: '600', color: '#285153', fontSize: '14px' }}>
+                                                    {producerName}
+                                                </span>
+                                                {producerDetails.phone && (
+                                                    <span style={{ marginLeft: '10px', fontSize: '12px', color: '#666' }}>
+                                                        {producerDetails.phone}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        {productRatings[item.product_id] > 0 && (
-                                            <span style={{ fontSize: '12px', color: '#FFB800', marginLeft: '5px' }}>
-                                                ✓ Rated
-                                            </span>
-                                        )}
+                                        {/* Sub-order Status Badge */}
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '4px 10px',
+                                            borderRadius: '12px',
+                                            backgroundColor: getStatusColor(subOrder.status),
+                                            color: 'white',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            {getStatusLabel(subOrder.status)}
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))
-                    ) : (
+
+                                    {/* Items from this producer */}
+                                    {items.map((item, itemIndex) => (
+                                        <div key={item.id || itemIndex}>
+                                            <div className="order-item" style={{ padding: '12px 20px' }}>
+                                                {item.product_photo && (
+                                                    <img
+                                                        src={item.product_photo}
+                                                        alt={item.product_name}
+                                                        className="order-item-image"
+                                                    />
+                                                )}
+                                                <div className="order-item-info">
+                                                    <span className="order-item-name">
+                                                        {item.product_name}
+                                                    </span>
+                                                    <span className="order-item-qty">
+                                                        x{item.quantity_ordered || item.quantity} {item.sale_type === 'weight' ? 'kg' : ''}
+                                                    </span>
+                                                </div>
+                                                <span className="order-item-price">
+                                                    {(item.subtotal || 0).toLocaleString()} DA
+                                                </span>
+                                            </div>
+
+                                            {/* Rating - Only for completed sub-orders */}
+                                            {canRateSubOrder && (
+                                                <div style={{
+                                                    padding: '8px 20px 12px 20px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px',
+                                                    backgroundColor: '#f0fff4',
+                                                    borderBottom: itemIndex < items.length - 1 ? '1px solid #e0e0e0' : 'none'
+                                                }}>
+                                                    <span style={{ fontSize: '13px', color: '#666' }}>Rate this product:</span>
+                                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <button
+                                                                key={star}
+                                                                onClick={() => handleRateProduct(item.product_id || item.id, star)}
+                                                                style={{
+                                                                    background: 'none',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    padding: 0,
+                                                                    transition: 'transform 0.2s'
+                                                                }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                            >
+                                                                <svg
+                                                                    viewBox="0 0 24 24"
+                                                                    fill={star <= (productRatings[item.product_id || item.id] || 0) ? '#FFB800' : 'none'}
+                                                                    stroke="#FFB800"
+                                                                    strokeWidth="2"
+                                                                    width="20"
+                                                                    height="20"
+                                                                >
+                                                                    <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5" />
+                                                                </svg>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {productRatings[item.product_id || item.id] > 0 && (
+                                                        <span style={{ fontSize: '12px', color: '#27ae60', marginLeft: '5px' }}>
+                                                            Rated
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Show message if sub-order not completed yet */}
+                                            {showRating && subOrder.status !== 'completed' && subOrder.status !== 'cancelled' && itemIndex === items.length - 1 && (
+                                                <div style={{
+                                                    padding: '8px 20px',
+                                                    fontSize: '12px',
+                                                    color: '#666',
+                                                    backgroundColor: '#fff8e1',
+                                                    fontStyle: 'italic'
+                                                }}>
+                                                    Rating available once this producer marks the order as completed
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {/* Sub-order subtotal */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        padding: '10px 20px',
+                                        backgroundColor: '#f8f9fa',
+                                        fontSize: '13px',
+                                        fontWeight: '500'
+                                    }}>
+                                        <span style={{ color: '#666' }}>Subtotal from {producerName}:</span>
+                                        <span style={{ color: '#285153' }}>{parseFloat(subOrder.subtotal || 0).toLocaleString()} DA</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="order-items">
                         <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                             {orderData.sub_orders_count ? (
                                 `${orderData.sub_orders_count} item${orderData.sub_orders_count > 1 ? 's' : ''}`
@@ -290,8 +377,8 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                                 'No items in this order'
                             )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {/* Delivery/Pickup Info */}
                 {orderData.delivery_method && (
@@ -302,16 +389,17 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                         fontSize: '13px'
                     }}>
                         <span style={{ fontWeight: '600', color: '#1565c0' }}>
-                            {orderData.delivery_method === 'pickup_producer' ? '🏠 Pickup at Farm' : '📍 Pickup Point'}:
+                            {orderData.delivery_method === 'pickup_producer' ? 'Pickup at Farm' : 'Pickup Point'}:
                         </span>
                         <span style={{ marginLeft: '8px', color: '#333' }}>
                             {orderData.delivery_method === 'pickup_producer'
-                                ? 'Collect your order directly from the producer'
+                                ? 'Collect your order directly from each producer'
                                 : orderData.delivery_address || 'Address not specified'}
                         </span>
                     </div>
                 )}
 
+                {/* Order Total */}
                 <div className="order-footer">
                     <span className="order-total-label">Total:</span>
                     <span className="order-total-amount">
@@ -319,15 +407,17 @@ const OrderCard = ({ order, onRateProduct, showRating = false }) => {
                     </span>
                 </div>
 
+                {/* Multi-producer info */}
                 {subOrders.length > 1 && (
-                    <div style={{ 
-                        padding: '10px 20px', 
-                        fontSize: '12px', 
+                    <div style={{
+                        padding: '10px 20px',
+                        fontSize: '12px',
                         color: '#666',
                         borderTop: '1px solid #e0e0e0',
-                        backgroundColor: '#f9f9f9'
+                        backgroundColor: '#f9f9f9',
+                        textAlign: 'center'
                     }}>
-                        Split across {subOrders.length} producers
+                        This order is split across {subOrders.length} producers - each has their own status
                     </div>
                 )}
             </div>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import OrderCard from '../../components/dashboard/OrderCard';
+import DeleteConfirmationModal from '../../components/dashboard/DeleteConfirmationModal';
+import Toast from '../../components/Toast';
 import orderService from '../../services/orderService';
 
 const OrdersPage = () => {
@@ -7,6 +9,8 @@ const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deletingOrder, setDeletingOrder] = useState(null);
+    const [toast, setToast] = useState(null);
 
     useEffect(() => {
         fetchOrders();
@@ -15,7 +19,7 @@ const OrdersPage = () => {
     const fetchOrders = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             const data = await orderService.getMyOrders();
             setOrders(data.orders || []);
@@ -24,6 +28,26 @@ const OrdersPage = () => {
             setError('Failed to load orders. Please try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteOrder = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            setDeletingOrder(order);
+        }
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await orderService.deleteFromHistory(deletingOrder.id);
+            setOrders(prev => prev.filter(o => o.id !== deletingOrder.id));
+            setToast({ message: 'Order removed from history', type: 'success' });
+        } catch (err) {
+            console.error('Failed to delete order:', err);
+            setToast({ message: 'Failed to remove order from history', type: 'error' });
+        } finally {
+            setDeletingOrder(null);
         }
     };
 
@@ -91,67 +115,90 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="orders-page">
-            <h1 className="orders-title">My Orders</h1>
+        <>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
 
-            <div className="orders-tabs">
-                <button
-                    className={`order-tab ${activeTab === 'active' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('active')}
-                >
-                    Active Orders
-                    {activeOrders.length > 0 && (
-                        <span className="tab-badge">{activeOrders.length}</span>
+            {deletingOrder && (
+                <DeleteConfirmationModal
+                    productName={`Order #${deletingOrder.order_number || deletingOrder.id}`}
+                    title="Remove from history?"
+                    confirmText="Yes, Remove"
+                    message={<>Are you sure you want to remove <strong>Order #{deletingOrder.order_number || deletingOrder.id}</strong> from your history? This action cannot be undone.</>}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeletingOrder(null)}
+                />
+            )}
+
+            <div className="orders-page">
+                <h1 className="orders-title">My Orders</h1>
+
+                <div className="orders-tabs">
+                    <button
+                        className={`order-tab ${activeTab === 'active' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('active')}
+                    >
+                        Active Orders
+                        {activeOrders.length > 0 && (
+                            <span className="tab-badge">{activeOrders.length}</span>
+                        )}
+                    </button>
+                    <button
+                        className={`order-tab ${activeTab === 'history' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('history')}
+                    >
+                        Order History
+                    </button>
+                </div>
+
+                <div className="orders-list">
+                    {activeTab === 'active' ? (
+                        activeOrders.length > 0 ? (
+                            activeOrders.map(order => (
+                                <OrderCard key={order.id} order={order} />
+                            ))
+                        ) : (
+                            <div className="empty-orders">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="60" height="60">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14,2 14,8 20,8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                </svg>
+                                <h3>No active orders</h3>
+                                <p>You don't have any orders in progress.</p>
+                            </div>
+                        )
+                    ) : (
+                        completedOrders.length > 0 ? (
+                            completedOrders.map(order => (
+                                <OrderCard
+                                    key={order.id}
+                                    order={order}
+                                    showRating={true}
+                                    showDeleteButton={true}
+                                    onDelete={handleDeleteOrder}
+                                />
+                            ))
+                        ) : (
+                            <div className="empty-orders">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="60" height="60">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14,2 14,8 20,8" />
+                                </svg>
+                                <h3>No order history</h3>
+                                <p>Your completed orders will appear here.</p>
+                            </div>
+                        )
                     )}
-                </button>
-                <button
-                    className={`order-tab ${activeTab === 'history' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('history')}
-                >
-                    Order History
-                </button>
+                </div>
             </div>
-
-            <div className="orders-list">
-                {activeTab === 'active' ? (
-                    activeOrders.length > 0 ? (
-                        activeOrders.map(order => (
-                            <OrderCard key={order.id} order={order} />
-                        ))
-                    ) : (
-                        <div className="empty-orders">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="60" height="60">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14,2 14,8 20,8" />
-                                <line x1="16" y1="13" x2="8" y2="13" />
-                                <line x1="16" y1="17" x2="8" y2="17" />
-                            </svg>
-                            <h3>No active orders</h3>
-                            <p>You don't have any orders in progress.</p>
-                        </div>
-                    )
-                ) : (
-                    completedOrders.length > 0 ? (
-                        completedOrders.map(order => (
-                            <OrderCard 
-                                key={order.id} 
-                                order={order}
-                                showRating={true}
-                            />
-                        ))
-                    ) : (
-                        <div className="empty-orders">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="60" height="60">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14,2 14,8 20,8" />
-                            </svg>
-                            <h3>No order history</h3>
-                            <p>Your completed orders will appear here.</p>
-                        </div>
-                    )
-                )}
-            </div>
-        </div>
+        </>
     );
 };
 

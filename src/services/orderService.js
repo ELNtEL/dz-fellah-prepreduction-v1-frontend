@@ -52,6 +52,17 @@ const orderService = {
       throw error;
     }
   },
+
+  // Delete order from history (client side)
+  deleteFromHistory: async (orderId) => {
+    try {
+      const response = await api.delete(`/orders/${orderId}/delete_from_history/`);
+      return response;
+    } catch (error) {
+      console.error('Delete order error:', error);
+      throw error;
+    }
+  },
 };
 
 export default orderService;

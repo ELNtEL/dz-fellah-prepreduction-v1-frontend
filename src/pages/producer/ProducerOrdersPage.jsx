@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import Toast from '../../components/Toast';
+import DeleteConfirmationModal from '../../components/dashboard/DeleteConfirmationModal';
 
 const ProducerOrdersPage = () => {
     const [activeTab, setActiveTab] = useState('active');
@@ -8,6 +9,7 @@ const ProducerOrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [toast, setToast] = useState(null);
+    const [deletingOrder, setDeletingOrder] = useState(null);
 
     useEffect(() => {
         fetchOrders();
@@ -52,6 +54,26 @@ const ProducerOrdersPage = () => {
         } catch (err) {
             console.error('Failed to update status:', err);
             showToast('Failed to update order status. Please try again.', 'error');
+        }
+    };
+
+    const handleDeleteOrder = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            setDeletingOrder(order);
+        }
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await api.delete(`/producer-orders/${deletingOrder.id}/delete_from_history/`);
+            setOrders(prev => prev.filter(o => o.id !== deletingOrder.id));
+            showToast('Order removed from history', 'success');
+        } catch (err) {
+            console.error('Failed to delete order:', err);
+            showToast('Failed to remove order from history', 'error');
+        } finally {
+            setDeletingOrder(null);
         }
     };
 
@@ -119,16 +141,28 @@ const ProducerOrdersPage = () => {
     }
 
     return (
-        <div className="orders-page">
-            <h1 className="orders-title">Incoming Orders</h1>
-
-            {toast && (
-                <Toast 
-                    message={toast.message} 
-                    type={toast.type} 
-                    onClose={() => setToast(null)} 
+        <>
+            {deletingOrder && (
+                <DeleteConfirmationModal
+                    productName={`Order #${deletingOrder.sub_order_number}`}
+                    title="Remove from history?"
+                    confirmText="Yes, Remove"
+                    message={<>Are you sure you want to remove <strong>Order #{deletingOrder.sub_order_number}</strong> from your history? This action cannot be undone.</>}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeletingOrder(null)}
                 />
             )}
+
+            <div className="orders-page">
+                <h1 className="orders-title">Incoming Orders</h1>
+
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => setToast(null)}
+                    />
+                )}
 
             <div className="orders-tabs">
                 <button
@@ -173,10 +207,12 @@ const ProducerOrdersPage = () => {
                 ) : (
                     completedOrders.length > 0 ? (
                         completedOrders.map(order => (
-                            <ProducerOrderCard 
-                                key={order.id} 
-                                order={order} 
+                            <ProducerOrderCard
+                                key={order.id}
+                                order={order}
                                 onUpdateStatus={handleUpdateStatus}
+                                showDeleteButton={true}
+                                onDelete={handleDeleteOrder}
                             />
                         ))
                     ) : (
@@ -192,11 +228,12 @@ const ProducerOrdersPage = () => {
                 )}
             </div>
         </div>
+        </>
     );
 };
 
-// Producer Order Card Component  
-const ProducerOrderCard = ({ order, onUpdateStatus }) => {
+// Producer Order Card Component
+const ProducerOrderCard = ({ order, onUpdateStatus, showDeleteButton = false, onDelete = null }) => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'pending': return '#f39c12';
@@ -239,7 +276,45 @@ const ProducerOrderCard = ({ order, onUpdateStatus }) => {
     const firstName = clientDetails.first_name || 'C';
 
     return (
-        <div className="order-card" style={{ marginBottom: '20px', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        <div className="order-card" style={{ marginBottom: '20px', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', position: 'relative' }}>
+            {/* Delete Button */}
+            {showDeleteButton && onDelete && (
+                <button
+                    onClick={() => onDelete(order.id)}
+                    style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundColor: '#fee2e2',
+                        color: '#dc2626',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                        zIndex: 10
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626';
+                        e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fee2e2';
+                        e.currentTarget.style.color = '#dc2626';
+                    }}
+                    title="Remove from history"
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            )}
+
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '20px' }}>
                 <div style={{ flex: 1 }}>
