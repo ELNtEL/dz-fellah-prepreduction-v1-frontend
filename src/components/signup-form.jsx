@@ -114,8 +114,8 @@ export default function SignupForm({
         registrationData = {
           email: formData.email,
           password: password,
-          first_name: formData.shopName,
-          last_name: formData.shopName,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
           phone: "",
           shop_name: formData.shopName,
           description: "",

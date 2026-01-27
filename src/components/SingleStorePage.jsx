@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, ArrowLeft, Package, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, ArrowLeft, Package, Star, Phone, User } from "lucide-react";
 import ProductDetailModal from "./product-detail-modal";
 import { producerService } from "../services";
 import ratingService from "../services/ratingService";
@@ -227,16 +227,33 @@ export default function SingleStorePage({ onNavigateToHome, onNavigateToLogin, o
             )}
 
             <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+              {/* Producer Name */}
+              {(store.first_name || store.last_name) && (
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-[#285153]" />
+                  <span className="font-medium">{store.first_name} {store.last_name}</span>
+                </div>
+              )}
+              {/* Phone */}
+              {store.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-[#285153]" />
+                  <span>{store.phone}</span>
+                </div>
+              )}
+              {/* Location */}
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-[#285153]" />
                 <span>{store.city}, {store.wilaya}</span>
               </div>
+              {/* Address */}
               {store.address && (
                 <div className="flex items-center gap-2">
                   <Package className="w-5 h-5 text-[#285153]" />
                   <span>{store.address}</span>
                 </div>
               )}
+              {/* Bio Certified Badge */}
               {store.is_bio_certified && (
                 <div className="flex items-center gap-2">
                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">

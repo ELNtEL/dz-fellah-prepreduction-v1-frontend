@@ -34,12 +34,12 @@ function BasketCard({ basket, onEdit, onDelete }) {
         }
     };
 
-    const getDeliveryMethodLabel = (method) => {
+    const getDeliveryMethodLabel = (method, deliveryAddress) => {
         switch (method) {
             case 'pickup_producer':
                 return 'Pickup at Farm';
             case 'pickup_point':
-                return 'Collection Point';
+                return deliveryAddress ? `Collection: ${deliveryAddress}` : 'Collection Point';
             default:
                 return method || 'Not specified';
         }
@@ -224,10 +224,11 @@ function BasketCard({ basket, onEdit, onDelete }) {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '4px',
-                                    color: sub.delivery_method === 'pickup_producer' ? '#1565c0' : '#e65100'
+                                    color: sub.delivery_method === 'pickup_producer' ? '#1565c0' : '#e65100',
+                                    flexWrap: 'wrap'
                                 }}>
                                     {getDeliveryMethodIcon(sub.delivery_method)}
-                                    {getDeliveryMethodLabel(sub.delivery_method)}
+                                    {getDeliveryMethodLabel(sub.delivery_method, sub.delivery_address)}
                                 </div>
 
                                 {/* Subscription Status */}
