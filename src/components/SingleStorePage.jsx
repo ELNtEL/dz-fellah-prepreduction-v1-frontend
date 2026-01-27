@@ -204,16 +204,16 @@ export default function SingleStorePage({ onNavigateToHome, onNavigateToLogin, o
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-12">
           <div className="bg-white rounded-xl shadow-md p-8 -mt-32 relative z-10 mb-12">
             {/* Avatar and Farm Name */}
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-5 mb-4">
               {/* Producer Avatar */}
               {getImageUrl(store.avatar) ? (
                 <img
                   src={getImageUrl(store.avatar)}
                   alt={store.shop_name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-[#285153]"
+                  className="w-24 h-24 rounded-full object-cover border-3 border-[#285153] shadow-lg"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-[#1a3839] flex items-center justify-center text-white text-2xl font-bold border-2 border-[#285153]">
+                <div className="w-24 h-24 rounded-full bg-[#1a3839] flex items-center justify-center text-white text-4xl font-bold border-3 border-[#285153] shadow-lg">
                   {store.shop_name?.charAt(0).toUpperCase()}
                 </div>
               )}
