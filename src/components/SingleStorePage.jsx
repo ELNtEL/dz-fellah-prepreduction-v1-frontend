@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, ArrowLeft, Package, Star, Phone, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, ArrowLeft, Package, Star, Phone, User, Mail } from "lucide-react";
 import ProductDetailModal from "./product-detail-modal";
 import { producerService } from "../services";
 import ratingService from "../services/ratingService";
@@ -203,7 +203,22 @@ export default function SingleStorePage({ onNavigateToHome, onNavigateToLogin, o
         {/* Store Info Card */}
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-12">
           <div className="bg-white rounded-xl shadow-md p-8 -mt-32 relative z-10 mb-12">
-            <h1 className="text-4xl font-bold text-[#285153] mb-4">{store.shop_name}</h1>
+            {/* Avatar and Farm Name */}
+            <div className="flex items-center gap-4 mb-4">
+              {/* Producer Avatar */}
+              {getImageUrl(store.avatar) ? (
+                <img
+                  src={getImageUrl(store.avatar)}
+                  alt={store.shop_name}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-[#285153]"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-[#1a3839] flex items-center justify-center text-white text-2xl font-bold border-2 border-[#285153]">
+                  {store.shop_name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <h1 className="text-4xl font-bold text-[#285153]">{store.shop_name}</h1>
+            </div>
 
             {/* Producer Rating */}
             <div className="mb-4">
@@ -239,6 +254,13 @@ export default function SingleStorePage({ onNavigateToHome, onNavigateToLogin, o
                 <div className="flex items-center gap-2">
                   <Phone className="w-5 h-5 text-[#285153]" />
                   <span>{store.phone}</span>
+                </div>
+              )}
+              {/* Email */}
+              {store.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-[#285153]" />
+                  <span>{store.email}</span>
                 </div>
               )}
               {/* Location */}
