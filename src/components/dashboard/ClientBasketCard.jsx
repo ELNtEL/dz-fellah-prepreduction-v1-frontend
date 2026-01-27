@@ -5,7 +5,7 @@ import authService from '../../services/authService';
 import basketpng from '../../assets/basketpng.png';
 import './css-weekly/ClientBasketCard.css';
 
-function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetails }) {
+function ClientBasketCard({ basket, subscription, onCancel, onViewDetails }) {
 
     // Use basket data directly (already restructured in parent)
     const {
@@ -58,7 +58,6 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                 {subscription && (
                     <span className={`status-badge ${subscription.status}`}>
                         {subscription.status === 'active' && <><FiCheck /> Active</>}
-                        {subscription.status === 'paused' && '⏸ Paused'}
                         {subscription.status === 'cancelled' && '✕ Cancelled'}
                     </span>
                 )}
@@ -196,22 +195,6 @@ function ClientBasketCard({ basket, subscription, onPause, onCancel, onViewDetai
                         >
                             VIEW DETAILS
                         </button>
-                        {subscription.status === 'active' && (
-                            <button
-                                className="basket-btn pause-btn"
-                                onClick={() => onPause && onPause()}
-                            >
-                                PAUSE
-                            </button>
-                        )}
-                        {subscription.status === 'paused' && (
-                            <button
-                                className="basket-btn resume-btn"
-                                onClick={() => onPause && onPause()}
-                            >
-                                RESUME
-                            </button>
-                        )}
                         {subscription.status !== 'cancelled' && (
                             <button
                                 className="basket-btn cancel-btn"

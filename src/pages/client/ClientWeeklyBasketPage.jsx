@@ -61,17 +61,6 @@ function ClientWeeklyBasketPage() {
         }
     };
 
-    const handlePauseSubscription = async (subscriptionId) => {
-        try {
-            await subscriptionService.pauseSubscription(subscriptionId);
-            await fetchSubscriptions();
-            showToast('Subscription paused successfully', 'success');
-        } catch (err) {
-            console.error('Failed to pause subscription:', err);
-            showToast('Failed to pause subscription', 'error');
-        }
-    };
-
     const handleCancelSubscription = (subscriptionId) => {
         const subscription = subscriptions.find(s => s.id === subscriptionId);
         if (subscription) {
@@ -172,7 +161,6 @@ function ClientWeeklyBasketPage() {
                                             products: subscription.products  // ✅ ADD THIS
                                         }}
                                         subscription={subscription}
-                                        onPause={() => handlePauseSubscription(subscription.id)}
                                         onCancel={() => handleCancelSubscription(subscription.id)}
                                         onViewDetails={() => handleViewDetails(subscription.id)}
                                     />
