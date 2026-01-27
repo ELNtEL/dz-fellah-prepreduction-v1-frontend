@@ -59,7 +59,8 @@ export default function ProductsPage({
     search: '',
     producer_search: '',
     product_type: null,
-    is_anti_gaspi: false
+    is_anti_gaspi: false,
+    is_seasonal: false
   });
   
   const [products, setProducts] = useState([]);
@@ -131,7 +132,8 @@ export default function ProductsPage({
       if (filters.producer_search) apiFilters.producer_search = filters.producer_search;
       if (filters.product_type) apiFilters.product_type = filters.product_type;
       if (filters.is_anti_gaspi) apiFilters.is_anti_gaspi = true;
-      
+      if (filters.is_seasonal) apiFilters.is_seasonal = true;
+
       const response = await productService.getAllProducts(apiFilters);
       const fetchedProducts = response.products || [];
       setProducts(fetchedProducts);
@@ -181,20 +183,28 @@ export default function ProductsPage({
     }));
   };
 
+  const handleSeasonalToggle = () => {
+    setFilters(prev => ({
+      ...prev,
+      is_seasonal: !prev.is_seasonal
+    }));
+  };
+
   const clearFilters = () => {
     setFilters({
       search: '',
       producer_search: '',
       product_type: null,
-      is_anti_gaspi: false
+      is_anti_gaspi: false,
+      is_seasonal: false
     });
   };
 
   useEffect(() => {
     fetchProducts();
-  }, [filters.product_type, filters.is_anti_gaspi]);
+  }, [filters.product_type, filters.is_anti_gaspi, filters.is_seasonal]);
 
-  const hasActiveFilters = filters.search || filters.producer_search || filters.product_type || filters.is_anti_gaspi;
+  const hasActiveFilters = filters.search || filters.producer_search || filters.product_type || filters.is_anti_gaspi || filters.is_seasonal;
 
   const featuredStores = [
     { name: "tizi_wezou_farm", products: "vegetables, oils" },
@@ -312,6 +322,17 @@ export default function ProductsPage({
               ♻️ Anti-Waste (-50%)
             </button>
 
+            <button
+              onClick={handleSeasonalToggle}
+              className={`px-4 py-2 rounded-full font-semibold transition ${
+                filters.is_seasonal
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🌱 In Season
+            </button>
+
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -343,6 +364,11 @@ export default function ProductsPage({
               {filters.is_anti_gaspi && (
                 <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
                   Anti-Waste Only
+                </span>
+              )}
+              {filters.is_seasonal && (
+                <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+                  🌱 In Season Only
                 </span>
               )}
             </div>

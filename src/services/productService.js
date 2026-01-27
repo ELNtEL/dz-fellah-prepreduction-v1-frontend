@@ -21,7 +21,8 @@ const productService = {
       
     
       if (filters.is_anti_gaspi) params.append('is_anti_gaspi', 'true');
-      
+      if (filters.is_seasonal) params.append('is_seasonal', 'true');
+
       // Old filters (keep for backwards compatibility)
       if (filters.category) params.append('category', filters.category);
       if (filters.min_price) params.append('min_price', filters.min_price);
