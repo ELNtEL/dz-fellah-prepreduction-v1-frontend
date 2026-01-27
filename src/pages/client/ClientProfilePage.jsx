@@ -19,9 +19,10 @@ const ClientProfilePage = () => {
         phone: '',
         address: '',
         city: '',
-        wilaya: '',
-        postalCode: ''
+        wilaya: ''
     });
+
+    const [successMessage, setSuccessMessage] = useState('');
 
     // Load user from localStorage
     useEffect(() => {
@@ -49,8 +50,7 @@ const ClientProfilePage = () => {
                     phone: userData.phone || userData.client_profile.phone || '',
                     address: userData.client_profile.address || '',
                     city: userData.client_profile.city || '',
-                    wilaya: userData.client_profile.wilaya || '',
-                    postalCode: userData.client_profile.postal_code || ''
+                    wilaya: userData.client_profile.wilaya || ''
                 });
             } else {
                 setAddressData({
@@ -58,8 +58,7 @@ const ClientProfilePage = () => {
                     phone: userData.phone || '',
                     address: '',
                     city: '',
-                    wilaya: '',
-                    postalCode: ''
+                    wilaya: ''
                 });
             }
         }
@@ -123,6 +122,7 @@ const ClientProfilePage = () => {
     };
 
     const handleSaveProfile = async () => {
+        setSuccessMessage('');
         try {
             // Prepare update data
             const updateData = {
@@ -143,18 +143,19 @@ const ClientProfilePage = () => {
             // Update local state with response
             setUser(response.user);
 
-            alert('Profile updated successfully!');
+            setSuccessMessage('Profile updated successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
 
             // Clear password field after successful update
             setProfileData(prev => ({ ...prev, password: '' }));
         } catch (error) {
             console.error('Failed to update profile:', error);
-            const errorMessage = error.error || error.message || 'Failed to update profile. Please try again.';
-            alert(errorMessage);
+            setSuccessMessage('');
         }
     };
 
     const handleSaveAddress = async () => {
+        setSuccessMessage('');
         try {
             // Prepare update data
             const updateData = {
@@ -170,11 +171,11 @@ const ClientProfilePage = () => {
             // Update local state with response
             setUser(response.user);
 
-            alert('Delivery address saved successfully!');
+            setSuccessMessage('Delivery address saved successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
         } catch (error) {
             console.error('Failed to update address:', error);
-            const errorMessage = error.error || error.message || 'Failed to update address. Please try again.';
-            alert(errorMessage);
+            setSuccessMessage('');
         }
     };
 
@@ -272,6 +273,19 @@ const ClientProfilePage = () => {
                         />
                     </div>
 
+                    {successMessage && (
+                        <div style={{
+                            padding: '12px 16px',
+                            backgroundColor: '#e8f5e9',
+                            color: '#2e7d32',
+                            borderRadius: '8px',
+                            marginBottom: '16px',
+                            fontWeight: '500'
+                        }}>
+                            {successMessage}
+                        </div>
+                    )}
+
                     <button className="btn-save" onClick={handleSaveProfile}>
                         Save Changes
                     </button>
@@ -339,18 +353,20 @@ const ClientProfilePage = () => {
                                 onChange={handleAddressChange}
                             />
                         </div>
-
-                        <div className="form-group" style={{ flex: 0.5 }}>
-                            <label className="form-label">Postal Code</label>
-                            <input
-                                type="text"
-                                name="postalCode"
-                                className="form-input"
-                                value={addressData.postalCode}
-                                onChange={handleAddressChange}
-                            />
-                        </div>
                     </div>
+
+                    {successMessage && (
+                        <div style={{
+                            padding: '12px 16px',
+                            backgroundColor: '#e8f5e9',
+                            color: '#2e7d32',
+                            borderRadius: '8px',
+                            marginBottom: '16px',
+                            fontWeight: '500'
+                        }}>
+                            {successMessage}
+                        </div>
+                    )}
 
                     <button className="btn-save" onClick={handleSaveAddress}>
                         Save Address
