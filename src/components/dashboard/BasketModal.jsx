@@ -235,7 +235,6 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
             // Step 2: Handle products
             if (savedBasket && savedBasket.id) {
                 const newProductIds = formData.products.map(p => p.id);
-                const oldProductIds = (basket?.products || []).map(p => p.product_id || p.id);
 
                 // Only remove products that are NOT in the new list
                 if (isEditMode && basket.products && basket.products.length > 0) {
@@ -253,10 +252,8 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                     }
                 }
 
-                // Only add products that are NOT already in the basket
-                const productsToAdd = formData.products.filter(p => !oldProductIds.includes(p.id));
-
-                for (const product of productsToAdd) {
+                // Add or update ALL products (backend uses ON CONFLICT to update quantity)
+                for (const product of formData.products) {
                     try {
                         await basketService.addProductToBasket(
                             savedBasket.id,
@@ -264,7 +261,7 @@ function BasketModal({ isOpen, onClose, basket, onSave }) {
                             product.quantity
                         );
                     } catch (err) {
-                        console.error('Error adding product to basket:', err);
+                        console.error('Error adding/updating product in basket:', err);
                     }
                 }
             }
